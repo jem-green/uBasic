@@ -54,11 +54,13 @@ main(int argc, char **argv, char **envp)
         return (-1);
      }
 
-     if (read(infile,buffer,15000) == -1) {
+	 int bytes = read(infile,buffer,15000);
+     if (bytes < 0) {
         printf("Error reading file \"%s\"  - terminating\n",q);
         printf("Error was \"%d\" \n",errno);
         return (-1);
      }
+	 buffer[bytes] = '\0';
      prog = buffer;
   } else {
     printf("Usage: ubasic fname\n  where fname is a file containing basic statements\n");

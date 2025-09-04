@@ -259,8 +259,7 @@ void tokenizer_next(void){
   return;
 }
 /*---------------------------------------------------------------------------*/
-VARIABLE_TYPE
-tokenizer_num(void)
+VARIABLE_TYPE tokenizer_num(void)
 {
   return atoi(ptr);
 }
