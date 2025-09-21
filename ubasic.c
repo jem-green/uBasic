@@ -73,11 +73,6 @@ static VARIABLE_TYPE variables[MAX_VARNUM];
 
 static int ended;
 
-static VARIABLE_TYPE expr(void);
-static void line_statement(void);
-static void statement(void);
-static void index_free(void);
-
 peek_func peek_function = NULL;
 poke_func poke_function = NULL;
 

@@ -27,26 +27,27 @@
  * SUCH DAMAGE.
  *
  */
-#ifndef __UBASIC_H__
-#define __UBASIC_H__
 
-#include "vartype.h"
+#include "ubasic.h"
 
-typedef VARIABLE_TYPE (*peek_func)(VARIABLE_TYPE);
-typedef void (*poke_func)(VARIABLE_TYPE, VARIABLE_TYPE);
+static const char program[] =
+"10 gosub 100\n\
+20 for i = 1 to 10\n\
+30 print i\n\
+40 next i\n\
+50 print \"end\"\n\
+60 end\n\
+100 print \"subroutine\"\n\
+110 return\n";
 
-static VARIABLE_TYPE expr(void);
-static void line_statement(void);
-static void statement(void);
-static void index_free(void);
-static VARIABLE_TYPE expr(void);
-static void line_statement(void);
-static void statement(void);
-static void index_free(void);
-void ubasic_init(const char *program);
-void ubasic_run(void);
-int ubasic_finished(void);
-VARIABLE_TYPE ubasic_get_variable(int varnum);
-void ubasic_set_variable(int varum, VARIABLE_TYPE value);
+/*---------------------------------------------------------------------------*/
+int main(int argc, char* argv[]) {
+  ubasic_init(program);
 
-#endif /* __UBASIC_H__ */
+  do {
+    ubasic_run();
+  } while(!ubasic_finished());
+
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
