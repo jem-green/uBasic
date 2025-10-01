@@ -1,4 +1,4 @@
-uBASIC: a really simple BASIC interpreter
+uBasic: a really simple BASIC interpreter
 =========================================
 
 http://dunkels.com/adam/ubasic/
