@@ -32,21 +32,12 @@
 
 #include "vartype.h"
 
-typedef VARIABLE_TYPE (*peek_func)(VARIABLE_TYPE);
-typedef void (*poke_func)(VARIABLE_TYPE, VARIABLE_TYPE);
 
-static VARIABLE_TYPE expr(void);
-static void line_statement(void);
-static void statement(void);
-static void index_free(void);
-static VARIABLE_TYPE expr(void);
-static void line_statement(void);
-static void statement(void);
-static void index_free(void);
+
+// Possibly public
+
 void ubasic_init(const char *program);
 void ubasic_run(void);
 int ubasic_finished(void);
-VARIABLE_TYPE ubasic_get_variable(int varnum);
-void ubasic_set_variable(int varum, VARIABLE_TYPE value);
 
 #endif /* __UBASIC_H__ */

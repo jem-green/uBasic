@@ -80,13 +80,10 @@ int tokenizer_token(void);
 VARIABLE_TYPE tokenizer_num(void);
 int tokenizer_variable_num(void);
 void tokenizer_string(char *dest, int len);
-
 int tokenizer_finished(void);
 void tokenizer_error_print(void);
-
 char const *tokenizer_pos(void);
 char const *tokenizer_start(void);
-
 char *tokenizer_token_name(int token);
 
 #endif /* __TOKENIZER_H__ */

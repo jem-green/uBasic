@@ -28,7 +28,7 @@
  *
  */
 
-#define DEBUG 1
+#define DEBUG 0
 #define VERBOSE 0
 
 #if DEBUG
@@ -42,6 +42,18 @@
 
 #include <stdio.h> /* printf() */
 #include <stdlib.h> /* exit() */
+
+// Probably private
+
+typedef VARIABLE_TYPE (*peek_func)(VARIABLE_TYPE);
+typedef void (*poke_func)(VARIABLE_TYPE, VARIABLE_TYPE);
+static VARIABLE_TYPE expr(void);
+static void line_statement(void);
+static void statement(void);
+static void index_free(void);
+static VARIABLE_TYPE expr(void);
+void set_variable(int varum, VARIABLE_TYPE value);
+VARIABLE_TYPE get_variable(int varnum);
 
 static char const *program_ptr;
 #define MAX_STRINGLEN 40
@@ -77,8 +89,7 @@ peek_func peek_function = NULL;
 poke_func poke_function = NULL;
 
 /*---------------------------------------------------------------------------*/
-void
-ubasic_init(const char *program){
+void ubasic_init(const char *program){
   program_ptr = program;
   for_stack_ptr = gosub_stack_ptr = 0;
   index_free();
@@ -98,9 +109,9 @@ void ubasic_init_peek_poke(const char *program, peek_func peek, poke_func poke){
 /*---------------------------------------------------------------------------*/
 static void accept(int token){
   if(token != tokenizer_token()) {
-    DEBUG_PRINTF("accept: Token not what was expected (expected '%s', got %d).\n",
-                tokenizer_token_name(token),
-				tokenizer_token());
+    DEBUG_PRINTF("accept: Token not what was expected (expected '%s', got %s).\n",
+		tokenizer_token_name(token),
+		tokenizer_token_name(tokenizer_token()));
     tokenizer_error_print();
     exit(1);
   }
@@ -111,7 +122,7 @@ static void accept(int token){
 static int varfactor(void){
   int r;
   DEBUG_PRINTF("varfactor: obtaining %d from variable %d.\n", variables[tokenizer_variable_num()], tokenizer_variable_num());
-  r = ubasic_get_variable(tokenizer_variable_num());
+  r = get_variable(tokenizer_variable_num());
   accept(TOKENIZER_VARIABLE);
   return r;
 }
@@ -151,7 +162,7 @@ static int term(void){
        op == TOKENIZER_MOD) {
     tokenizer_next();
     f2 = factor();
-    DEBUG_PRINTF("term: %d %d %d.\n", f1, op, f2);
+    DEBUG_PRINTF("term: %d %d %d\n", f1, op, f2);
     switch(op) {
     case TOKENIZER_ASTR:
       f1 = f1 * f2;
@@ -169,8 +180,7 @@ static int term(void){
   return f1;
 }
 /*---------------------------------------------------------------------------*/
-static VARIABLE_TYPE expr(void)
-{
+static VARIABLE_TYPE expr(void){
   int t1, t2;
   int op;
 
@@ -259,22 +269,22 @@ static char const* index_find(int linenum) {
     lidx = lidx->next;
 
     #if DEBUG
-	#if VERBOSE
-    if(lidx != NULL) {
-      DEBUG_PRINTF("index_find: Step %3d. Found index for line %d: %p.\n",
-			step,
-			lidx->line_number,
-			lidx->program_text_position - tokenizer_start());
-    }
-    step++;
-	#endif
+    	#if VERBOSE
+      		if(lidx != NULL) {
+        		DEBUG_PRINTF("index_find: Step %3d. Found index for line %d: %p.\n",
+        		step,
+        		lidx->line_number,
+        		lidx->program_text_position - tokenizer_start());
+      		}
+      		step++;
+    	#endif
     #endif
   }
   if(lidx != NULL && lidx->line_number == linenum) {
-	#if DEBUG
-	#if VERBOSE
-    DEBUG_PRINTF("index_find: Returning index for line %d.\n", linenum);
-	#endif
+    #if DEBUG
+    	#if VERBOSE
+      		DEBUG_PRINTF("index_find: Returning index for line %d.\n", linenum);
+    	#endif
     #endif
     return lidx->program_text_position;
   }
@@ -301,12 +311,15 @@ static void index_add(int linenum, char const* sourcepos) {
     line_index_current = new_lidx;
     line_index_head = line_index_current;
   }
-  //DEBUG_PRINTF("index_add: Adding index for line %d: %p.\n", linenum,
-  //             sourcepos - tokenizer_start());
+  #if DEBUG
+  	#if VERBOSE
+		DEBUG_PRINTF("index_add: Adding index for line %d: %p.\n", linenum,
+			sourcepos - tokenizer_start());
+		#endif
+	#endif
 }
 /*---------------------------------------------------------------------------*/
-static void jump_linenum_slow(int linenum)
-{
+static void jump_linenum_slow(int linenum) {
   tokenizer_init(program_ptr);
   while(tokenizer_num() != linenum) {
     do {
@@ -326,8 +339,7 @@ static void jump_linenum_slow(int linenum)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void jump_linenum(int linenum)
-{
+static void jump_linenum(int linenum) {
   char const* pos = index_find(linenum);
   if(pos != NULL) {
     DEBUG_PRINTF("jump_linenum: Going to line %d.\n", linenum);
@@ -339,36 +351,38 @@ static void jump_linenum(int linenum)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void goto_statement(void)
-{
+static void goto_statement(void) {
   accept(TOKENIZER_GOTO);
   jump_linenum(tokenizer_num());
 }
 /*---------------------------------------------------------------------------*/
-static void print_statement(void)
-{
+static void print_statement(void) {
+  static char buf[128];
+  buf[0]=0;
   accept(TOKENIZER_PRINT);
   DEBUG_PRINTF("print_statement: Loop.\n");
   do {
     if(tokenizer_token() == TOKENIZER_STRING) {
       tokenizer_string(string, sizeof(string));
-      printf("%s", string);
+	  sprintf(buf+strlen(buf), "%s", string);
       tokenizer_next();
     } else if(tokenizer_token() == TOKENIZER_COMMA) {
-      printf(" ");
+      sprintf(buf+strlen(buf), "%s", " ");
       tokenizer_next();
     } else if(tokenizer_token() == TOKENIZER_SEMICOLON) {
       tokenizer_next();
     } else if(tokenizer_token() == TOKENIZER_VARIABLE ||
-          tokenizer_token() == TOKENIZER_NUMBER) {
-      printf("%d", expr());
-	} else if (tokenizer_token() == TOKENIZER_CR){
-		tokenizer_next();
+        tokenizer_token() == TOKENIZER_NUMBER) {
+		sprintf(buf+strlen(buf), "%d", expr());
+    } else if (tokenizer_token() == TOKENIZER_CR){
+      tokenizer_next();
     } else {
       break;
     }
   } while(tokenizer_token() != TOKENIZER_LF &&
       tokenizer_token() != TOKENIZER_ENDOFINPUT);
+  printf(buf);
+  printf("\n");
   DEBUG_PRINTF("print_statement: End of print.\n");
   tokenizer_next();
 }
@@ -379,7 +393,9 @@ static void if_statement(void){
   accept(TOKENIZER_IF);
 
   r = relation();
-  DEBUG_PRINTF("if_statement: relation %d.\n", r);
+  #if VERBOSE
+  	DEBUG_PRINTF("if_statement: relation %d.\n", r);
+  #endif
   accept(TOKENIZER_THEN);
   if(r) {
     statement();
@@ -405,8 +421,10 @@ static void let_statement(void){
 
   accept(TOKENIZER_VARIABLE);
   accept(TOKENIZER_EQ);
-  ubasic_set_variable(var, expr());
-  DEBUG_PRINTF("let_statement: assign %d to %d.\n", variables[var], var);
+  set_variable(var, expr());
+  #if VERBOSE
+    DEBUG_PRINTF("let_statement: assign %d to %d.\n", variables[var], var);
+  #endif
   accept(TOKENIZER_LF);
 
 }
@@ -444,9 +462,9 @@ static void next_statement(void){
   accept(TOKENIZER_VARIABLE);
   if(for_stack_ptr > 0 &&
      var == for_stack[for_stack_ptr - 1].for_variable) {
-    ubasic_set_variable(var,
-                       ubasic_get_variable(var) + 1);
-    if(ubasic_get_variable(var) <= for_stack[for_stack_ptr - 1].to) {
+    set_variable(var,
+		get_variable(var) + 1);
+    if(get_variable(var) <= for_stack[for_stack_ptr - 1].to) {
       jump_linenum(for_stack[for_stack_ptr - 1].line_after_for);
     } else {
       for_stack_ptr--;
@@ -466,7 +484,7 @@ static void for_statement(void) {
   for_variable = tokenizer_variable_num();
   accept(TOKENIZER_VARIABLE);
   accept(TOKENIZER_EQ);
-  ubasic_set_variable(for_variable, expr());
+  set_variable(for_variable, expr());
   accept(TOKENIZER_TO);
   to = expr();
   accept(TOKENIZER_LF);
@@ -475,10 +493,11 @@ static void for_statement(void) {
     for_stack[for_stack_ptr].line_after_for = tokenizer_num();
     for_stack[for_stack_ptr].for_variable = for_variable;
     for_stack[for_stack_ptr].to = to;
-    DEBUG_PRINTF("for_statement: new for, var %d to %d.\n",
-                for_stack[for_stack_ptr].for_variable,
-                for_stack[for_stack_ptr].to);
-
+    #if VERBOSE
+      DEBUG_PRINTF("for_statement: new for, var %d to %d.\n",
+		for_stack[for_stack_ptr].for_variable,
+        for_stack[for_stack_ptr].to);
+    #endif
     for_stack_ptr++;
   } else {
     DEBUG_PRINTF("for_statement: for stack depth exceeded.\n");
@@ -496,7 +515,7 @@ static void peek_statement(void){
   accept(TOKENIZER_VARIABLE);
   accept(TOKENIZER_LF);
 
-  ubasic_set_variable(var, peek_function(peek_addr));
+  set_variable(var, peek_function(peek_addr));
 }
 /*---------------------------------------------------------------------------*/
 static void poke_statement(void)
@@ -568,7 +587,9 @@ static void statement(void){
 }
 /*---------------------------------------------------------------------------*/
 static void line_statement(void){
-  DEBUG_PRINTF("----------- Line number %d ---------\n", tokenizer_num());
+  #if VERBOSE
+    DEBUG_PRINTF("----------- Line number %d ---------\n", tokenizer_num());
+  #endif
   index_add(tokenizer_num(), tokenizer_pos());
   accept(TOKENIZER_NUMBER);
   statement();
@@ -577,25 +598,26 @@ static void line_statement(void){
 /*---------------------------------------------------------------------------*/
 void ubasic_run(void){
   if(tokenizer_finished()) {
-    DEBUG_PRINTF("ubasic_run: Program finished.\n");
+    #if VERBOSE
+      DEBUG_PRINTF("ubasic_run: Program finished.\n");
+    #endif
     return;
   }
 
   line_statement();
 }
 /*---------------------------------------------------------------------------*/
-int
-ubasic_finished(void){
+int ubasic_finished(void){
   return ended || tokenizer_finished();
 }
 /*---------------------------------------------------------------------------*/
-void ubasic_set_variable(int varnum, VARIABLE_TYPE value){
+void set_variable(int varnum, VARIABLE_TYPE value){
   if(varnum >= 0 && varnum <= MAX_VARNUM) {
     variables[varnum] = value;
   }
 }
 /*---------------------------------------------------------------------------*/
-VARIABLE_TYPE ubasic_get_variable(int varnum){
+VARIABLE_TYPE get_variable(int varnum){
   if(varnum >= 0 && varnum <= MAX_VARNUM) {
     return variables[varnum];
   }

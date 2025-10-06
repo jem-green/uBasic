@@ -28,8 +28,8 @@
  *
  */
 
-#define DEBUG 1
-#define VERBOSE 1
+#define DEBUG 0
+#define VERBOSE 0
 
 
 #if DEBUG
@@ -118,7 +118,7 @@ static const struct keyword_token tokens[] = {
 };
 
 /*---------------------------------------------------------------------------*/
-static int singlechar(void){
+static int singlechar(void) {
   if(*ptr == '\n') {
     return TOKENIZER_LF;
   } else if(*ptr == ',') {
@@ -155,7 +155,7 @@ static int singlechar(void){
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static int get_next_token(void){
+static int get_next_token(void) {
   struct keyword_token const *kt;
   int i;
 
@@ -213,21 +213,19 @@ static int get_next_token(void){
   return TOKENIZER_ERROR;
 }
 /*---------------------------------------------------------------------------*/
-void tokenizer_goto(const char *program){
+void tokenizer_goto(const char *program) {
   ptr = program;
   current_token = get_next_token();
 }
 /*---------------------------------------------------------------------------*/
-void tokenizer_init(const char *program){
+void tokenizer_init(const char *program) {
   ptr = program;
   prog = program;
   startptr = program;
   current_token = get_next_token();
 }
 /*---------------------------------------------------------------------------*/
-int
-tokenizer_token(void)
-{
+int tokenizer_token(void) {
   return current_token;
 }
 /*---------------------------------------------------------------------------*/
@@ -246,6 +244,7 @@ void tokenizer_next(void){
   current_token = get_next_token();
 
   if(current_token == TOKENIZER_REM) {
+      DEBUG_PRINTF("tokenizer_next: skip %s\n", tokenizer_token_name(current_token));
       while(!(*nextptr == '\n' || tokenizer_finished())) {
         ++nextptr;
       }
@@ -283,21 +282,17 @@ void tokenizer_string(char *dest, int len){
   dest[string_len] = 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-tokenizer_error_print(void)
-{
+void tokenizer_error_print(void) {
   DEBUG_PRINTF("tokenizer_error_print: %p.\n", ptr-startptr);
 }
+
 /*---------------------------------------------------------------------------*/
-int
-tokenizer_finished(void)
-{
+int tokenizer_finished(void) {
   return *ptr == 0 || current_token == TOKENIZER_ENDOFINPUT;
 }
+
 /*---------------------------------------------------------------------------*/
-int
-tokenizer_variable_num(void)
-{
+int tokenizer_variable_num(void) {
   return *ptr - 'a';
 }
 /*---------------------------------------------------------------------------*/
