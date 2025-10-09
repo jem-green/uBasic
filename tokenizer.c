@@ -243,20 +243,19 @@ void tokenizer_next(void){
   }
   current_token = get_next_token();
 
-  if(current_token == TOKENIZER_REM) {
-      DEBUG_PRINTF("tokenizer_next: skip %s\n", tokenizer_token_name(current_token));
-      while(!(*nextptr == '\n' || tokenizer_finished())) {
-        ++nextptr;
-      }
-      if(*nextptr == '\n') {
-        ++nextptr;
-      }
-      tokenizer_next();
-  }
-
   DEBUG_PRINTF("tokenizer_next: %p %s.\n", ptr-startptr, tokenizer_token_name(current_token));
-  return;
 }
+
+void tokeniser_skip(void) {
+  while(!(*nextptr == '\n' || tokenizer_finished())) {
+        ++nextptr;
+  }
+  if (*nextptr == '\n') {
+    nextptr++;
+  }
+  ptr = nextptr;
+}
+
 /*---------------------------------------------------------------------------*/
 VARIABLE_TYPE tokenizer_num(void)
 {

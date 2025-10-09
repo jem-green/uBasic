@@ -18,6 +18,8 @@
 #include "ubasic.h"
 #include "tokenizer.h"
 
+// Private methods
+
 static void run_program(void);
 static void add_line(const char *line);
 static void insert_char_array(const char *dest, const char *src, const char *position);
@@ -41,30 +43,30 @@ int main(int argc, char* argv[]) {
   int infile;
 
   if (argc > 1) {
-     p = argv + 1;
-     q = *p;
-	 while(*q == ' ') ++q;
- 
+    p = argv + 1;
+    q = *p;
+    while(*q == ' ') ++q; // Eat whitespace
+
      if ((infile = open(q,0)) == -1) {
         printf("File \"%s\" not found in current directory - terminating\n",q);
         return (-1);
      }
 
-	 int bytes = read(infile,buffer,MEMORY_SIZE);
-     if (bytes < 0) {
-        printf("Error reading file \"%s\"  - terminating\n",q);
-        printf("Error was \"%d\" \n",errno);
-        return (-1);
-     }
-	 buffer[bytes] = '\0';
-       // Copy buffer to program
+    int bytes = read(infile,buffer,MEMORY_SIZE);
+    if (bytes < 0) {
+      printf("Error reading file \"%s\"  - terminating\n",q);
+      printf("Error was \"%d\" \n",errno);
+      return (-1);
+    }
+    buffer[bytes] = '\0';
+    // Copy buffer to program
     memcpy(program, buffer, sizeof(buffer));
 
   }
   
   char input[MAX_LINE_LENGTH];
 
-  printf("uBASIC CLI - Type 'RUN' to execute, 'LIST' to view, 'NEW' to clear, 'EXIT' to quit\n");
+  printf("uBasic CLI - Type 'RUN' to execute, 'LIST' to view, 'NEW' to clear, 'EXIT' to quit\n");
 
   while (1) {
     printf("> ");
@@ -83,19 +85,19 @@ int main(int argc, char* argv[]) {
         add_line(input);
     }
   }
-  
-  return 0; 
+
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static void run_program(void) {
     ubasic_init(program);
     while (!ubasic_finished()) {
-        ubasic_run();  
+        ubasic_run();
     }
 }
 /*---------------------------------------------------------------------------*/
 static void add_line(const char *line) {
-  
+
   startptr = program;
   int linenum;
   static char const *lineptr;
@@ -105,23 +107,28 @@ static void add_line(const char *line) {
   
   // want to check if the new line has content
   
-  DEBUG_PRINTF("add_line: Add new line number %d\n", linenum);
-  int r = find_linenum(linenum);
-  DEBUG_PRINTF("add_line: Found line number %d\n", r);
-  if (linenum != r) {
-    DEBUG_PRINTF("add_line: Insert new line %d\n",linenum);
-    insert_char_array(startptr, line, ++ptr);
-  } else {
-    DEBUG_PRINTF("add_line: replace existing line %d\n",linenum);
-    int numChars = 0;
-    numChars = get_current_line_len();
-    DEBUG_PRINTF("add_line: numchars %d\n",numChars);
-    delete_char_array(startptr, ++ptr, numChars);
-    
-    // Need a better way to check if the line is just the line number
-    
-    if (linelen > 4) {
+  if (linenum > 0) {
+    DEBUG_PRINTF("add_line: Add inputted line number %d\n", linenum);
+    // Problem with find_linenumber of there are no line number
+    // ptr returns pointing to the end of the previous lineno being
+    // search for.
+    int r = find_linenum(linenum);
+    DEBUG_PRINTF("add_line: Found line number %d\n", r);
+    if (linenum != r) {
+      DEBUG_PRINTF("add_line: Insert new line %d\n",linenum);
       insert_char_array(startptr, line, ptr);
+    } else {
+      DEBUG_PRINTF("add_line: replace existing line %d\n",linenum);
+      int numChars = 0;
+      numChars = get_current_line_len();
+      DEBUG_PRINTF("add_line: numchars %d\n",numChars);
+      delete_char_array(startptr, ptr, numChars);
+      
+      // Need a better way to check if the line is just the line number
+      
+      if (linelen > 4) {
+        insert_char_array(startptr, line, ptr);
+      }
     }
   }
   
@@ -136,7 +143,7 @@ static void insert_char_array(const char *dest, const char *src, const char *pos
 
   // Ensure the position pointer is within the bounds of the destination string
   if (position < dest || position > dest + destLen) {
-      printf("Invalid position pointer\n");
+      DEBUG_PRINTF("insert_char_array: Invalid position pointer\n");
       return;
   }
 
@@ -150,25 +157,25 @@ static void insert_char_array(const char *dest, const char *src, const char *pos
   memcpy(dest + offset, src, srcLen);
 }
 /*---------------------------------------------------------------------------*/
-static void delete_char_array(const char *str, char *start, int numChars) {
-    int strLen = strlen(str);
+static void delete_char_array(const char *dest, char *position, int numChars) {
+    int destLen = strlen(dest);
 
     // Ensure the start pointer is within bounds
-    if (start < str || start >= str + strLen) {
-        printf("Invalid start pointer\n");
+    if (position < dest || position >= dest + destLen) {
+        DEBUG_PRINTF("delete_char_array: Invalid start pointer\n");
         return;
     }
 
-    // Calculate the offset (index) from the start of `str` to the `start` pointer
-    int offset = start - str;
+  // Calculate the offset (index) from the start of `dest` to the position pointer
+    int offset = position - dest;
 
     // Ensure the number of characters to delete does not exceed the string length
-    if (offset + numChars > strLen) {
-        numChars = strLen - offset; // Adjust to delete only up to the end of the string
+    if (offset + numChars > destLen) {
+        numChars = destLen - offset; // Adjust to delete only up to the end of the string
     }
 
     // Shift the remaining characters to the left
-    memmove(start, start + numChars, strLen - offset - numChars + 1); // +1 to include the null terminator
+    memmove(position, position + numChars, destLen - offset - numChars + 1); // +1 to include the null terminator
 }
 
 /*---------------------------------------------------------------------------*/
@@ -178,21 +185,38 @@ static int find_linenum(int linenum) {
     DEBUG_PRINTF("find_linenum: enter.\n");
  	#endif
 	#endif 
-  int nextlinenum = 0;
+  int currentLinenum;
   ptr = program;
-  while ((atoi(ptr) < linenum) && (atoi(ptr) > 0)) {
-    do {
+  currentLinenum = atoi(ptr);
+  while ((atoi(ptr) < linenum) && (*ptr != 0)) {
+    #if DEBUG
+    #if VERBOSE
+      DEBUG_PRINTF("find_linenum: Current line %d.\n", atoi(ptr));
+    #endif
+    #endif
+
+    currentLinenum = atoi(ptr);
+
+    // Move to the end of the line
+    // or end of the file
+
+    while ((*ptr != '\n') && (*ptr != 0)) {
       ptr++;
-    } while ((*ptr != '\n') && (*ptr != 0));
-    nextlinenum = atoi(ptr);
-  #if DEBUG 
-	#if VERBOSE
-    DEBUG_PRINTF("find_linenum: Line %d.\n", nextlinenum);
-	#endif
-	#endif
+    }
+    ptr++;
+
+    // Prevent replacing the last found linenum if end of file.
+    if (atoi(ptr) > 0) {
+      currentLinenum = atoi(ptr);
+    }
+    #if DEBUG
+    #if VERBOSE
+      DEBUG_PRINTF("find_linenum: next Line %d.\n", currentLinenum);
+    #endif
+    #endif
   }
-  DEBUG_PRINTF("find_linenum: Found line %d.\n", nextlinenum); 
-  return(nextlinenum);
+  DEBUG_PRINTF("find_linenum: Found line %d.\n", currentLinenum);
+  return(currentLinenum);
 }
 
 
@@ -202,8 +226,8 @@ static int get_current_line_len(void) {
   do {
       nextptr++;
     } while (*nextptr != '\n');
-
-  #if DEBUG 
+  nextptr++;  
+  #if DEBUG
 	#if VERBOSE
     DEBUG_PRINTF("get_current_line_len: %d\n", nextptr - ptr);
 	#endif

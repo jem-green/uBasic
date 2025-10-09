@@ -73,6 +73,8 @@ enum {
   TOKENIZER_CR
 };
 
+// Public
+
 void tokenizer_goto(const char *program);
 void tokenizer_init(const char *program);
 void tokenizer_next(void);
@@ -85,5 +87,6 @@ void tokenizer_error_print(void);
 char const *tokenizer_pos(void);
 char const *tokenizer_start(void);
 char *tokenizer_token_name(int token);
+void tokeniser_skip(void);
 
 #endif /* __TOKENIZER_H__ */

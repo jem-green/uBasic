@@ -107,6 +107,23 @@ void ubasic_init_peek_poke(const char *program, peek_func peek, poke_func poke){
   ended = 0;
 }
 /*---------------------------------------------------------------------------*/
+int ubasic_finished(void){
+  return ended || tokenizer_finished();
+}
+/*---------------------------------------------------------------------------*/
+void ubasic_run(void){
+  if(tokenizer_finished()) {
+    #if VERBOSE
+      DEBUG_PRINTF("ubasic_run: Program finished.\n");
+    #endif
+    return;
+  }
+
+  line_statement();
+}
+
+// Private functions
+/*---------------------------------------------------------------------------*/
 static void accept(int token){
   if(token != tokenizer_token()) {
     DEBUG_PRINTF("accept: Token not what was expected (expected '%s', got %s).\n",
@@ -332,9 +349,9 @@ static void jump_linenum_slow(int linenum) {
       }
     } while(tokenizer_token() != TOKENIZER_NUMBER);
 	#if DEBUG
-	#if VERBOSE
-    DEBUG_PRINTF("jump_linenum_slow: Found line %d.\n", tokenizer_num());
-	#endif
+      #if VERBOSE
+        DEBUG_PRINTF("jump_linenum_slow: Found line %d.\n", tokenizer_num());
+	  #endif
 	#endif
   }
 }
@@ -453,6 +470,15 @@ static void return_statement(void){
     DEBUG_PRINTF("return_statement: non-matching return.\n");
   }
 }
+
+static void rem_statement(void) {
+  accept(TOKENIZER_REM);
+  tokeniser_skip();
+  if (tokenizer_token() == TOKENIZER_LF) {
+    accept(TOKENIZER_LF);
+  }
+}
+
 /*---------------------------------------------------------------------------*/
 static void next_statement(void){
   int var;
@@ -580,6 +606,9 @@ static void statement(void){
   case TOKENIZER_VARIABLE:
     let_statement();
     break;
+  case TOKENIZER_REM:
+    rem_statement();
+    break;
   default:
     DEBUG_PRINTF("statement: not implemented %d.\n", token);
     exit(1);
@@ -593,31 +622,15 @@ static void line_statement(void){
   index_add(tokenizer_num(), tokenizer_pos());
   accept(TOKENIZER_NUMBER);
   statement();
-  return;
 }
 /*---------------------------------------------------------------------------*/
-void ubasic_run(void){
-  if(tokenizer_finished()) {
-    #if VERBOSE
-      DEBUG_PRINTF("ubasic_run: Program finished.\n");
-    #endif
-    return;
-  }
-
-  line_statement();
-}
-/*---------------------------------------------------------------------------*/
-int ubasic_finished(void){
-  return ended || tokenizer_finished();
-}
-/*---------------------------------------------------------------------------*/
-void set_variable(int varnum, VARIABLE_TYPE value){
+static void set_variable(int varnum, VARIABLE_TYPE value){
   if(varnum >= 0 && varnum <= MAX_VARNUM) {
     variables[varnum] = value;
   }
 }
 /*---------------------------------------------------------------------------*/
-VARIABLE_TYPE get_variable(int varnum){
+static VARIABLE_TYPE get_variable(int varnum){
   if(varnum >= 0 && varnum <= MAX_VARNUM) {
     return variables[varnum];
   }
