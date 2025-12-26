@@ -1,6 +1,6 @@
-# TinyBasic
-Tiny Basic
+# uBasic
+uBasic
 
-A fork of TinyBasic
+A c# wrapper for ubasic
 
-Copyright (c) by Mohan Embar 2008. All Rights Reserved.
+Copyright (c) 2006, Adam Dunkels.
