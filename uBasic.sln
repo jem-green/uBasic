@@ -22,7 +22,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Net6.0", "Net6.0", "{9A9D41
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "uBasic-Library", "uBasic-Library", "{1D1EF916-B1D1-4954-B162-63A4D3F8A120}"
 	ProjectSection(SolutionItems) = preProject
+		ThirdParty\ubasic-library\LICENSE = ThirdParty\ubasic-library\LICENSE
+		ThirdParty\ubasic-library\makefile.bat = ThirdParty\ubasic-library\makefile.bat
+		ThirdParty\ubasic-library\tokenizer.c = ThirdParty\ubasic-library\tokenizer.c
+		ThirdParty\ubasic-library\tokenizer.h = ThirdParty\ubasic-library\tokenizer.h
+		ThirdParty\ubasic-library\tokenizer.obj = ThirdParty\ubasic-library\tokenizer.obj
+		ThirdParty\ubasic-library\ubasic.c = ThirdParty\ubasic-library\ubasic.c
 		ThirdParty\ubasic-library\ubasic.dll = ThirdParty\ubasic-library\ubasic.dll
+		ThirdParty\ubasic-library\ubasic.exp = ThirdParty\ubasic-library\ubasic.exp
+		ThirdParty\ubasic-library\ubasic.h = ThirdParty\ubasic-library\ubasic.h
+		ThirdParty\ubasic-library\ubasic.lib = ThirdParty\ubasic-library\ubasic.lib
+		ThirdParty\ubasic-library\ubasic.obj = ThirdParty\ubasic-library\ubasic.obj
+		ThirdParty\ubasic-library\vartype.h = ThirdParty\ubasic-library\vartype.h
 	EndProjectSection
 EndProject
 Global
