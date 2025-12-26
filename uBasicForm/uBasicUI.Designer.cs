@@ -53,13 +53,13 @@ namespace uBasicForm
             // 
             consoleTextBox.Dock = DockStyle.Fill;
             consoleTextBox.Enabled = false;
-            consoleTextBox.Location = new Point(0, 42);
+            consoleTextBox.Location = new Point(0, 44);
             consoleTextBox.Margin = new Padding(4);
             consoleTextBox.Multiline = true;
             consoleTextBox.Name = "consoleTextBox";
             consoleTextBox.ReadOnly = true;
             consoleTextBox.ScrollBars = ScrollBars.Vertical;
-            consoleTextBox.Size = new Size(866, 635);
+            consoleTextBox.Size = new Size(866, 633);
             consoleTextBox.TabIndex = 0;
             consoleTextBox.Visible = false;
             consoleTextBox.KeyPress += ConsoleTextBox_KeyPress;
@@ -71,7 +71,7 @@ namespace uBasicForm
             consoleMenuStrip.Location = new Point(0, 0);
             consoleMenuStrip.Name = "consoleMenuStrip";
             consoleMenuStrip.Padding = new Padding(7, 3, 0, 3);
-            consoleMenuStrip.Size = new Size(866, 42);
+            consoleMenuStrip.Size = new Size(866, 44);
             consoleMenuStrip.TabIndex = 1;
             consoleMenuStrip.Text = "menuStrip1";
             // 
@@ -79,7 +79,7 @@ namespace uBasicForm
             // 
             fileMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openFileMenuItem, toolStripSeparator1, recentFileToolStripMenuItem, toolStripSeparator2, exitToolStripMenuItem });
             fileMenuItem.Name = "fileMenuItem";
-            fileMenuItem.Size = new Size(71, 36);
+            fileMenuItem.Size = new Size(71, 38);
             fileMenuItem.Text = "File";
             // 
             // openFileMenuItem
@@ -116,20 +116,20 @@ namespace uBasicForm
             // 
             formatToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { fontToolStripMenuItem, colorToolStripMenuItem });
             formatToolStripMenuItem.Name = "formatToolStripMenuItem";
-            formatToolStripMenuItem.Size = new Size(109, 36);
+            formatToolStripMenuItem.Size = new Size(109, 38);
             formatToolStripMenuItem.Text = "Format";
             // 
             // fontToolStripMenuItem
             // 
             fontToolStripMenuItem.Name = "fontToolStripMenuItem";
-            fontToolStripMenuItem.Size = new Size(204, 44);
+            fontToolStripMenuItem.Size = new Size(359, 44);
             fontToolStripMenuItem.Text = "Font";
             fontToolStripMenuItem.Click += FormatFontMenuItem_Click;
             // 
             // colorToolStripMenuItem
             // 
             colorToolStripMenuItem.Name = "colorToolStripMenuItem";
-            colorToolStripMenuItem.Size = new Size(204, 44);
+            colorToolStripMenuItem.Size = new Size(359, 44);
             colorToolStripMenuItem.Text = "Color";
             colorToolStripMenuItem.Click += FormatColorMenuItem_Click;
             // 
