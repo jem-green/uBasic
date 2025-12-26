@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11304.174
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "uBasicLibrary", "uBasicLibrary\uBasicLibrary.csproj", "{DC851EB7-57E5-48E1-B2E0-E7E2EBB4B565}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "uBasicConsole", "uBasicConsole\uBasicConsole.csproj", "{96F5C988-E863-4445-8311-232CA861B898}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "uBasicForm", "uBasicForm\uBasicForm.csproj", "{8C4BCDE2-CD0C-4413-8856-E74599519024}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{0936A1D6-4D56-4382-A0F1-2E5EC9A24DB8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tracer", "Tracer", "{75146EAA-CC02-4FC5-813B-DBF32B15E10B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Net6.0", "Net6.0", "{9A9D416C-F71B-460A-9EEF-19C8A9A0B215}"
+	ProjectSection(SolutionItems) = preProject
+		ThirdParty\tracer\net6.0\TracerLibrary.deps.json = ThirdParty\tracer\net6.0\TracerLibrary.deps.json
+		ThirdParty\tracer\net6.0\TracerLibrary.dll = ThirdParty\tracer\net6.0\TracerLibrary.dll
+		ThirdParty\tracer\net6.0\TracerLibrary.pdb = ThirdParty\tracer\net6.0\TracerLibrary.pdb
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "uBasic-Library", "uBasic-Library", "{1D1EF916-B1D1-4954-B162-63A4D3F8A120}"
+	ProjectSection(SolutionItems) = preProject
+		ThirdParty\ubasic-library\ubasic.dll = ThirdParty\ubasic-library\ubasic.dll
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DC851EB7-57E5-48E1-B2E0-E7E2EBB4B565}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC851EB7-57E5-48E1-B2E0-E7E2EBB4B565}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC851EB7-57E5-48E1-B2E0-E7E2EBB4B565}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC851EB7-57E5-48E1-B2E0-E7E2EBB4B565}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96F5C988-E863-4445-8311-232CA861B898}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96F5C988-E863-4445-8311-232CA861B898}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96F5C988-E863-4445-8311-232CA861B898}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96F5C988-E863-4445-8311-232CA861B898}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C4BCDE2-CD0C-4413-8856-E74599519024}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C4BCDE2-CD0C-4413-8856-E74599519024}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C4BCDE2-CD0C-4413-8856-E74599519024}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C4BCDE2-CD0C-4413-8856-E74599519024}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{75146EAA-CC02-4FC5-813B-DBF32B15E10B} = {0936A1D6-4D56-4382-A0F1-2E5EC9A24DB8}
+		{9A9D416C-F71B-460A-9EEF-19C8A9A0B215} = {75146EAA-CC02-4FC5-813B-DBF32B15E10B}
+		{1D1EF916-B1D1-4954-B162-63A4D3F8A120} = {0936A1D6-4D56-4382-A0F1-2E5EC9A24DB8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E71BD401-8414-45E0-8996-6610A7313AFD}
+	EndGlobalSection
+EndGlobal

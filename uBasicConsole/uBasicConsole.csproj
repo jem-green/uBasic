@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <ApplicationIcon>ubasic.ico</ApplicationIcon>
+    <AssemblyTitle>uBasicConsole</AssemblyTitle>
+    <Company>Jeremy Green</Company>
+    <Product>uBasicConsole</Product>
+    <Copyright>Copyright © Jeremy Green, 32high. 2008</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="uBasic.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\uBasicLibrary\uBasicLibrary.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="TracerLibrary">
+      <HintPath>..\ThirdParty\tracer\net6.0\TracerLibrary.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="test.bas">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ubasic.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

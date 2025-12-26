@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "uBasicConsole": {
+      "commandName": "Project",
+      "commandLineArgs": "test.bas"
+    }
+  }
+}
