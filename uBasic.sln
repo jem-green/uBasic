@@ -36,6 +36,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "uBasic-Library", "uBasic-Li
 		ThirdParty\ubasic-library\vartype.h = ThirdParty\ubasic-library\vartype.h
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "uBasicApp", "uBasicApp\uBasicApp.csproj", "{C8D2642D-FED5-9944-8836-965ACBA00244}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Display", "Display", "{899D3D9F-FC51-4A14-9283-348253560A03}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net6.0", "net6.0", "{0C90ADE7-0439-4733-B1E9-7274DEAA3D53}"
+	ProjectSection(SolutionItems) = preProject
+		ThirdParty\display\net6.0-windows\DisplayLibrary.deps.json = ThirdParty\display\net6.0-windows\DisplayLibrary.deps.json
+		ThirdParty\display\net6.0-windows\DisplayLibrary.dll = ThirdParty\display\net6.0-windows\DisplayLibrary.dll
+		ThirdParty\display\net6.0-windows\DisplayLibrary.pdb = ThirdParty\display\net6.0-windows\DisplayLibrary.pdb
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +65,10 @@ Global
 		{8C4BCDE2-CD0C-4413-8856-E74599519024}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C4BCDE2-CD0C-4413-8856-E74599519024}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C4BCDE2-CD0C-4413-8856-E74599519024}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8D2642D-FED5-9944-8836-965ACBA00244}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8D2642D-FED5-9944-8836-965ACBA00244}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8D2642D-FED5-9944-8836-965ACBA00244}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8D2642D-FED5-9944-8836-965ACBA00244}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +77,8 @@ Global
 		{75146EAA-CC02-4FC5-813B-DBF32B15E10B} = {0936A1D6-4D56-4382-A0F1-2E5EC9A24DB8}
 		{9A9D416C-F71B-460A-9EEF-19C8A9A0B215} = {75146EAA-CC02-4FC5-813B-DBF32B15E10B}
 		{1D1EF916-B1D1-4954-B162-63A4D3F8A120} = {0936A1D6-4D56-4382-A0F1-2E5EC9A24DB8}
+		{899D3D9F-FC51-4A14-9283-348253560A03} = {0936A1D6-4D56-4382-A0F1-2E5EC9A24DB8}
+		{0C90ADE7-0439-4733-B1E9-7274DEAA3D53} = {899D3D9F-FC51-4A14-9283-348253560A03}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E71BD401-8414-45E0-8996-6610A7313AFD}

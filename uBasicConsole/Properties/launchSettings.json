@@ -2,7 +2,7 @@
   "profiles": {
     "uBasicConsole": {
       "commandName": "Project",
-      "commandLineArgs": "test.bas"
+      "commandLineArgs": "samples\\test.bas"
     }
   }
 }

@@ -1,14 +1,16 @@
-using uBasicForm.Properties;
-using uBasicLibrary;
+using DisplayLibrary;
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using TracerLibrary;
+using uBasicApp.Properties;
+using uBasicLibrary;
 
-namespace uBasicForm
+namespace uBasicApp
 {
     public partial class uBasicUI : Form
     {
@@ -34,14 +36,39 @@ namespace uBasicForm
         // Most recently used
         protected MruStripMenu _mruMenu;
 
+        // Use monochrome display
+
+        MonochromeTextDisplay _mtd;
+
+        // Keyboard matrix
+
+        KeyboardMatrix _matrix;
+
+        string _lineBuffer = "";
+
         #endregion
         #region Constructor
 
         public uBasicUI(string path, string name)
         {
-            Debug.WriteLine("In ConsoleForm()");
+            Debug.WriteLine("In ConsoleApp()");
 
             InitializeComponent();
+
+            // Initialise the display
+
+            _mtd = new MonochromeTextDisplay(32, 32, 4);
+
+            ROMFont rasterFont = new ROMFont();
+            string fileName = "IBM_VGA_8x8.bin";
+            string fileNamePath = Path.Combine(path, fileName);
+            rasterFont.Load(fileNamePath);
+
+            _mtd.Font = rasterFont;
+            _mtd.Set(0, 0);
+            _mtd.ForegroundColour = new SolidColour(0, 160, 0);          // Dark Green foreground
+            _mtd.BackgroundColour = new SolidColour(0, 0, 0);                // Black background
+            _mtd.Clear(); // Calls generate internally
 
             _textBoxIO = new TextBoxIO();
             _textBoxIO.TextReceived += new EventHandler<TextEventArgs>(OnMessageReceived);
@@ -58,7 +85,7 @@ namespace uBasicForm
 
             if ((path.Length > 0) && (name.Length > 0))
             {
-                consoleTextBox.Text = "";
+                //consoleTextBox.Text = "";
                 this.Text = "uBasic " + version + " - " + name;
 
                 string filenamePath = "";
@@ -81,15 +108,15 @@ namespace uBasicForm
                     this._workerThread = new Thread(new ThreadStart(this.Run));
                     _textBoxIO.Reset();
                     this._workerThread.Start();
-                    consoleTextBox.Visible = true;
-                    consoleTextBox.Enabled = true;
+                    pictureBox1.Visible = true;
+                    pictureBox1.Enabled = true;
                 }
                 catch (Exception e1)
                 {
                     TraceInternal.TraceError(e1.ToString());
                 }
             }
-            Debug.WriteLine("Out ConsoleForm()");
+            Debug.WriteLine("Out ConsoleApp()");
         }
 
         #endregion
@@ -100,8 +127,8 @@ namespace uBasicForm
             string path = "";
             string filename = "";
 
-            consoleTextBox.Enabled = false;
-            consoleTextBox.Visible = false;
+            pictureBox1.Enabled = false;
+            pictureBox1.Visible = false;
             if (_stopped == false)
             {
                 _basic.Stop();
@@ -127,7 +154,7 @@ namespace uBasicForm
                 TraceInternal.TraceInformation("Use Name=" + filename);
                 TraceInternal.TraceInformation("Use Path=" + path);
 
-                consoleTextBox.Text = "";
+                //consoleTextBox.Text = "";
                 Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
                 this.Text = "uBasic " + version + " - " + filename;
 
@@ -149,8 +176,8 @@ namespace uBasicForm
                     this._workerThread = new Thread(new ThreadStart(this.Run));
                     _textBoxIO.Reset();
                     this._workerThread.Start();
-                    consoleTextBox.Visible = true;
-                    consoleTextBox.Enabled = true;
+                    pictureBox1.Visible = true;
+                    pictureBox1.Enabled = true;
                 }
                 catch (Exception e1)
                 {
@@ -168,14 +195,22 @@ namespace uBasicForm
             string output = _textBoxIO.Output;
             if (output.Length > 0)
             {
-                this.consoleTextBox.AppendText(output);
-                //int position = consoleTextBox.SelectionLength;
-                double position = consoleTextBox.TextLength;
-                double width = consoleTextBox.Width / 8;   // assume a fix width font
-                double top = Math.Floor(position / width);
-                _textBoxIO.CursorTop = (int)top;
-                double left = position - width * Math.Floor(position / width);
-                _textBoxIO.CursorLeft = (int)left;
+                foreach (char c in output)
+                {
+                    if (c == '\n')
+                    {
+                        _mtd.Set(0, _mtd.Row + 1);
+                    }
+                    else if (c == '\r')
+                    {
+                        _mtd.Set(0, _mtd.Row);
+                    }
+                    else
+                    {
+                        _mtd.Write((byte)c);
+                    }
+                }
+                pictureBox1.Invalidate();
             }
         }
 
@@ -204,37 +239,6 @@ namespace uBasicForm
             }
         }
 
-        /// <summary>
-        /// Intercept the key press events and manage the content
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ConsoleTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            char chr = e.KeyChar;
-            if (chr == '\r')
-            {
-                value += chr;
-                _textBoxIO.Input = value;
-                this.consoleTextBox.AppendText("\r" + "\n");
-                value = "";
-            }
-            else if (chr == '\b')
-            {
-                if (value.Length > 0)
-                {
-                    this.consoleTextBox.Text = this.consoleTextBox.Text.Substring(0, this.consoleTextBox.Text.Length - 1);
-                    this.consoleTextBox.SelectionStart = consoleTextBox.Text.Length;
-                    this.consoleTextBox.ScrollToCaret();
-                    value = value.Substring(0, value.Length - 1);
-                }
-            }
-            else
-            {
-                value += chr;
-                this.consoleTextBox.AppendText(Convert.ToString(chr));
-            }
-        }
 
         private void FileOpenMenuItem_Click(object sender, EventArgs e)
         {
@@ -243,8 +247,8 @@ namespace uBasicForm
             string path = "";
             string filename = "";
 
-            consoleTextBox.Enabled = false;
-            consoleTextBox.Visible = false;
+            pictureBox1.Enabled = false;
+            pictureBox1.Visible = false;
             if (_stopped == false)
             {
                 _basic.Stop();
@@ -277,7 +281,7 @@ namespace uBasicForm
                 TraceInternal.TraceInformation("Use Name=" + filename);
                 TraceInternal.TraceInformation("Use Path=" + path);
 
-                consoleTextBox.Text = "";
+                //consoleTextBox.Text = "";
                 Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
                 this.Text = "uBasic " + version + " - " + filename;
 
@@ -299,8 +303,8 @@ namespace uBasicForm
                     this._workerThread = new Thread(new ThreadStart(this.Run));
                     _textBoxIO.Reset();
                     this._workerThread.Start();
-                    consoleTextBox.Visible = true;
-                    consoleTextBox.Enabled = true;
+                    pictureBox1.Visible = true;
+                    pictureBox1.Enabled = true;
                 }
                 catch (Exception e1)
                 {
@@ -313,24 +317,24 @@ namespace uBasicForm
         private void FormatFontMenuItem_Click(object sender, EventArgs e)
         {
             Debug.WriteLine("In FormatFontMenuItem_Click()");
-            FontDialog fontDialog = new FontDialog
-            {
-                Font = consoleTextBox.Font,
-                ShowColor = true,
-                Color = consoleTextBox.ForeColor
-            };
+            //FontDialog fontDialog = new FontDialog
+            //{
+            //    Font = consoleTextBox.Font,
+            //    ShowColor = true,
+            //    Color = consoleTextBox.ForeColor
+            //};
 
-            if (fontDialog.ShowDialog() == DialogResult.OK)
-            {
-                Font font = fontDialog.Font;
-                Color color = fontDialog.Color;
-                consoleTextBox.Font = font;
-                consoleTextBox.ForeColor = color;
-                Properties.Settings.Default.ConsoleFont = font;
-                Properties.Settings.Default.ConsoleFontColor = color;
-                // Save settings
-                Settings.Default.Save();
-            }
+            //if (fontDialog.ShowDialog() == DialogResult.OK)
+            //{
+            //    Font font = fontDialog.Font;
+            //    Color color = fontDialog.Color;
+            //    consoleTextBox.Font = font;
+            //    consoleTextBox.ForeColor = color;
+            //    Properties.Settings.Default.ConsoleFont = font;
+            //    Properties.Settings.Default.ConsoleFontColor = color;
+            //    // Save settings
+            //    Settings.Default.Save();
+            //}
             Debug.WriteLine("Out FormatFontMenuItem_Click()");
         }
 
@@ -367,19 +371,19 @@ namespace uBasicForm
             // Set Console font
             if (Settings.Default.ConsoleFont != null)
             {
-                this.consoleTextBox.Font = Settings.Default.ConsoleFont;
+                //this.consoleTextBox.Font = Settings.Default.ConsoleFont;
             }
 
             // Set Console font colour
             if (Settings.Default.ConsoleFontColor != null)
             {
-                this.consoleTextBox.ForeColor = Settings.Default.ConsoleFontColor;
+                //this.consoleTextBox.ForeColor = Settings.Default.ConsoleFontColor;
             }
 
             // Set Console colour
             if (Settings.Default.ConsoleColor != null)
             {
-                this.consoleTextBox.BackColor = Settings.Default.ConsoleColor;
+                //this.consoleTextBox.BackColor = Settings.Default.ConsoleColor;
             }
 
             Debug.WriteLine("Out ConsoleForm_Load()");
@@ -414,13 +418,13 @@ namespace uBasicForm
             }
 
             // Copy console font type to app settings
-            Settings.Default.ConsoleFont = this.consoleTextBox.Font;
+            //Settings.Default.ConsoleFont = this.consoleTextBox.Font;
 
             // Copy console font colour to app settings
-            Settings.Default.ConsoleFontColor = this.consoleTextBox.ForeColor;
+            //Settings.Default.ConsoleFontColor = this.consoleTextBox.ForeColor;
 
             // Copy console colour to app settings
-            Settings.Default.ConsoleColor = this.consoleTextBox.BackColor;
+            //Settings.Default.ConsoleColor = this.consoleTextBox.BackColor;
 
             // Safe Mru
             SaveFileList();
@@ -445,13 +449,13 @@ namespace uBasicForm
             Debug.WriteLine("In FileExitMenuItem_Click()");
             ColorDialog colorDialog = new ColorDialog
             {
-                Color = consoleTextBox.BackColor
+                //Color = _mtd.BackgroundColour.ToUInt32()
             };
 
             if (colorDialog.ShowDialog() == DialogResult.OK)
             {
                 Color color = colorDialog.Color;
-                consoleTextBox.BackColor = color;
+                _mtd.BackgroundColour = new SolidColour(0, 0, 0);                // Black background
                 Properties.Settings.Default.ConsoleColor = color;
             }
             Debug.WriteLine("Out FileExitMenuItem_Click()");
@@ -499,5 +503,95 @@ namespace uBasicForm
 
         #endregion
 
+        private void pictureBox1_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            Bitmap b = _mtd.Bitmap;
+            g.DrawImageUnscaled(b, 0, 0);
+        }
+
+        private void pictureBox1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+
+            byte key = _matrix.ToASCII(e.KeyValue, e.Shift, e.Control, e.Alt);
+
+            if (key > 0)
+            {
+                if (key == 27)  // Escape
+                {
+                    _mtd.Clear();    // Calls generate internally
+                    _mtd.Set(0, 0);
+                    _lineBuffer = "";
+                }
+                else if (key == 13) // Carriage Return
+                {
+                    // Not sure if the scroll should trigger
+                    int row = _mtd.Row;
+                    if (row == _mtd.Height - 1)
+                    {
+                        _mtd.Scroll();
+                        _mtd.Set(0, row);
+                        _mtd.Generate();
+                    }
+                    else
+                    {
+                        _mtd.Set(0, row + 1);
+                    }
+
+                    // At this stage the buffer would be sent to a command processor
+
+                    _lineBuffer = "";
+
+                }
+                else if (key == 8)  // Backspace
+                {
+                    int column = _mtd.Column;
+                    int row = _mtd.Row;
+                    if (_lineBuffer.Length > 0)
+                    {
+                        if (column > 0)
+                        {
+                            _mtd.Column = column - 1;
+                            _mtd.Put(32);  // Calls Generate internally
+                        }
+                        else
+                        {
+                            // At start of line - need to move to end of previous line
+                            if (row > 0)
+                            {
+                                _mtd.Row = row - 1;
+                                _mtd.Column = _mtd.Width - 1;
+                                _mtd.Put(32);  // Calls Generate internally
+
+                            }
+                        }
+                        _lineBuffer = _lineBuffer.Substring(0, _lineBuffer.Length - 1);
+                    }
+                }
+                else
+                {
+                    int column = _mtd.Column;
+                    int row = _mtd.Row;
+                    if (column >= _mtd.Width)
+                    {
+                        row += 1;
+                        column = 0;
+                        _mtd.Set(column, row);
+                        if (row == _mtd.Height)
+                        {
+                            _mtd.Scroll();
+                            row -= 1;
+                            _mtd.Set(column, row);
+                            _mtd.Generate();
+                        }
+                    }
+                    _mtd.Put(key, new SolidColour(255, 0, 0), new SolidColour(0, 255, 0)); // // Red on Green Calls generate internally
+                    _mtd.Set(column + 1, row);
+
+                    _lineBuffer += (char)key;           // Append to line buffer
+                }
+                pictureBox1.Invalidate();
+            }
+        }
     }
 }

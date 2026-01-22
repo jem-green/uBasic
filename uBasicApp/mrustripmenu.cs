@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using System.Threading;
 using Microsoft.Win32;
 
-namespace uBasicForm
+namespace uBasicApp
 {
 	/// <summary>
 	/// Represents a most recently used (MRU) menu.

@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace uBasicForm
+namespace uBasicApp
 {
     partial class uBasicUI
     {
@@ -35,7 +35,6 @@ namespace uBasicForm
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(uBasicUI));
-            consoleTextBox = new TextBox();
             consoleMenuStrip = new MenuStrip();
             fileMenuItem = new ToolStripMenuItem();
             openFileMenuItem = new ToolStripMenuItem();
@@ -46,23 +45,10 @@ namespace uBasicForm
             formatToolStripMenuItem = new ToolStripMenuItem();
             fontToolStripMenuItem = new ToolStripMenuItem();
             colorToolStripMenuItem = new ToolStripMenuItem();
+            pictureBox1 = new PictureBox();
             consoleMenuStrip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
-            // 
-            // consoleTextBox
-            // 
-            consoleTextBox.Dock = DockStyle.Fill;
-            consoleTextBox.Enabled = false;
-            consoleTextBox.Location = new Point(0, 44);
-            consoleTextBox.Margin = new Padding(4);
-            consoleTextBox.Multiline = true;
-            consoleTextBox.Name = "consoleTextBox";
-            consoleTextBox.ReadOnly = true;
-            consoleTextBox.ScrollBars = ScrollBars.Vertical;
-            consoleTextBox.Size = new Size(866, 633);
-            consoleTextBox.TabIndex = 0;
-            consoleTextBox.Visible = false;
-            consoleTextBox.KeyPress += ConsoleTextBox_KeyPress;
             // 
             // consoleMenuStrip
             // 
@@ -71,7 +57,7 @@ namespace uBasicForm
             consoleMenuStrip.Location = new Point(0, 0);
             consoleMenuStrip.Name = "consoleMenuStrip";
             consoleMenuStrip.Padding = new Padding(7, 3, 0, 3);
-            consoleMenuStrip.Size = new Size(866, 44);
+            consoleMenuStrip.Size = new Size(866, 42);
             consoleMenuStrip.TabIndex = 1;
             consoleMenuStrip.Text = "menuStrip1";
             // 
@@ -79,36 +65,36 @@ namespace uBasicForm
             // 
             fileMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openFileMenuItem, toolStripSeparator1, recentFileToolStripMenuItem, toolStripSeparator2, exitToolStripMenuItem });
             fileMenuItem.Name = "fileMenuItem";
-            fileMenuItem.Size = new Size(71, 38);
+            fileMenuItem.Size = new Size(71, 36);
             fileMenuItem.Text = "File";
             // 
             // openFileMenuItem
             // 
             openFileMenuItem.Name = "openFileMenuItem";
-            openFileMenuItem.Size = new Size(359, 44);
+            openFileMenuItem.Size = new Size(263, 44);
             openFileMenuItem.Text = "&Open";
             openFileMenuItem.Click += FileOpenMenuItem_Click;
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(356, 6);
+            toolStripSeparator1.Size = new Size(260, 6);
             // 
             // recentFileToolStripMenuItem
             // 
             recentFileToolStripMenuItem.Name = "recentFileToolStripMenuItem";
-            recentFileToolStripMenuItem.Size = new Size(359, 44);
+            recentFileToolStripMenuItem.Size = new Size(263, 44);
             recentFileToolStripMenuItem.Text = "Recent File";
             // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(356, 6);
+            toolStripSeparator2.Size = new Size(260, 6);
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(359, 44);
+            exitToolStripMenuItem.Size = new Size(263, 44);
             exitToolStripMenuItem.Text = "&Exit";
             exitToolStripMenuItem.Click += FileExitMenuItem_Click;
             // 
@@ -116,7 +102,7 @@ namespace uBasicForm
             // 
             formatToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { fontToolStripMenuItem, colorToolStripMenuItem });
             formatToolStripMenuItem.Name = "formatToolStripMenuItem";
-            formatToolStripMenuItem.Size = new Size(109, 38);
+            formatToolStripMenuItem.Size = new Size(109, 36);
             formatToolStripMenuItem.Text = "Format";
             // 
             // fontToolStripMenuItem
@@ -133,12 +119,23 @@ namespace uBasicForm
             colorToolStripMenuItem.Text = "Color";
             colorToolStripMenuItem.Click += FormatColorMenuItem_Click;
             // 
+            // pictureBox1
+            // 
+            pictureBox1.Dock = DockStyle.Fill;
+            pictureBox1.Location = new Point(0, 42);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(866, 635);
+            pictureBox1.TabIndex = 2;
+            pictureBox1.TabStop = false;
+            pictureBox1.Paint += pictureBox1_Paint;
+            pictureBox1.PreviewKeyDown += pictureBox1_PreviewKeyDown;
+            // 
             // uBasicUI
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(866, 677);
-            Controls.Add(consoleTextBox);
+            Controls.Add(pictureBox1);
             Controls.Add(consoleMenuStrip);
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = consoleMenuStrip;
@@ -149,14 +146,13 @@ namespace uBasicForm
             Load += ConsoleForm_Load;
             consoleMenuStrip.ResumeLayout(false);
             consoleMenuStrip.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.TextBox consoleTextBox;
         private System.Windows.Forms.MenuStrip consoleMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem fileMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openFileMenuItem;
@@ -167,6 +163,7 @@ namespace uBasicForm
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem recentFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private PictureBox pictureBox1;
     }
 }
 

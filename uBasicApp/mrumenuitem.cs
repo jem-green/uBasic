@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace uBasicForm
+namespace uBasicApp
 {
     /// <summary>
     /// The menu item which will contain the MRU entry.

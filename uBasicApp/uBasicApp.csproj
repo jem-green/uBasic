@@ -29,6 +29,9 @@
     <ProjectReference Include="..\uBasicLibrary\uBasicLibrary.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="DisplayLibrary">
+      <HintPath>..\ThirdParty\display\net6.0-windows\DisplayLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="TracerLibrary">
       <HintPath>..\ThirdParty\tracer\net6.0\TracerLibrary.dll</HintPath>
     </Reference>
@@ -41,6 +44,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Update="IBM_VGA_8x8.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

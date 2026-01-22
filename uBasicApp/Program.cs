@@ -1,57 +1,30 @@
-using uBasicLibrary;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using TracerLibrary;
-using System.ComponentModel.Design;
+using uBasicLibrary;
 
-namespace uBasicConsole
+namespace uBasicApp
 {
-    class Program
+    static class Program
     {
-        #region Fields
-
-        static readonly IDefaultIO consoleIO = new ConsoleIO();
-        public static bool isclosing = false;
-        static private HandlerRoutine ctrlCHandler;
-
-        #endregion
-        #region unmanaged
-        // Declare the SetConsoleCtrlHandler function
-        // as external and receiving a delegate.
-
-        [DllImport("Kernel32")]
-        public static extern bool SetConsoleCtrlHandler(HandlerRoutine Handler, bool Add);
-
-        // A delegate type to be used as the handler routine
-        // for SetConsoleCtrlHandler.
-        public delegate bool HandlerRoutine(CtrlTypes CtrlType);
-
-        // An enumerated type for the control messages
-        // sent to the handler routine.
-        public enum CtrlTypes
-        {
-            CTRL_C_EVENT = 0,
-            CTRL_BREAK_EVENT,
-            CTRL_CLOSE_EVENT,
-            CTRL_LOGOFF_EVENT = 5,
-            CTRL_SHUTDOWN_EVENT
-        }
-
-        #endregion
         #region Methods
 
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main(string[] args)
+
+        [STAThread]
+        static void Main()
         {
+            // Read in specific configuration
+
             Debug.WriteLine("Enter Main()");
 
-            ctrlCHandler = new HandlerRoutine(ConsoleCtrlCheck);
-            SetConsoleCtrlHandler(ctrlCHandler, true);
+            string[] args = Environment.GetCommandLineArgs();
             int pos = 0;
             Parameter<string> filePath = new Parameter<string>("filePath", "");
             Parameter<string> fileName = new Parameter<string>("fileName", "");
@@ -63,11 +36,11 @@ namespace uBasicConsole
             filePath.Source = IParameter.SourceType.App;
 
             Parameter<string> logPath = new Parameter<string>("logPath", "");
-            Parameter<string> logName = new Parameter<string>("logName", "ubasicconsole");
+            Parameter<string> logName = new Parameter<string>("logNmae", "ubasicform");
 
-            logPath.Value = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + System.IO.Path.DirectorySeparatorChar + "basic";
-            //logPath.Value = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            //logPath.Value = filePath.Value = Environment.CurrentDirectory;
+            logPath.Value = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + System.IO.Path.DirectorySeparatorChar + "ubasic";
+            //logPath.Value = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + System.IO.Path.DirectorySeparatorChar + "uBasic";
+            //logPath.Value = "d:\\";
             logPath.Source = IParameter.SourceType.App;
 
             Parameter<SourceLevels> traceLevels = new Parameter<SourceLevels>("traceLevels", TraceInternal.TraceLookup("VERBOSE"));
@@ -75,6 +48,10 @@ namespace uBasicConsole
 
             // Configure tracer options
 
+            if (!Directory.Exists(logPath.Value))
+            {
+                Directory.CreateDirectory(logPath.Value);
+            }
             string logFilenamePath = logPath.Value.ToString() + Path.DirectorySeparatorChar + logName.Value.ToString() + ".log";
             FileStreamWithRolling dailyRolling = new FileStreamWithRolling(logFilenamePath, new TimeSpan(1, 0, 0, 0), FileMode.Append);
             TextWriterTraceListenerWithTime listener = new TextWriterTraceListenerWithTime(dailyRolling);
@@ -89,7 +66,7 @@ namespace uBasicConsole
                 // Check if the registry has been set and overwrite the application defaults
 
                 RegistryKey key = RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, RegistryView.Registry64);
-                string keys = "software\\green\\ubasic";
+                string keys = "software\\green\\basic";
                 foreach (string subkey in keys.Split('\\'))
                 {
                     key = key.OpenSubKey(subkey);
@@ -101,9 +78,10 @@ namespace uBasicConsole
                 }
 
                 // Get the log path
+
                 if (key == null)
                 {
-                    TraceInternal.TraceVerbose("Registry key not found using default values");
+                    TraceInternal.TraceVerbose("Registry key not found use default values");
                 }
                 else
                 {
@@ -207,17 +185,17 @@ namespace uBasicConsole
                 }
             }
             else
-            {
-                TraceInternal.TraceVerbose("Linux OS - skipping registry read");
+                            {
+                TraceInternal.TraceVerbose("Linux OS - skip registry read");
             }
 
             // Check if the config file has been passed in and overwrite the registry
 
             string filenamePath = "";
             int items = args.Length;
-            if (items == 1)
+            if (items == 2)
             {
-                filenamePath = args[0].Trim('"');
+                filenamePath = args[1].Trim('"');
                 pos = filenamePath.LastIndexOf('.');
                 if (pos > 0)
                 {
@@ -254,7 +232,6 @@ namespace uBasicConsole
                     {
                         lookup = lookup.ToLower();
                     }
-
                     switch (lookup)
                     {
                         case "/d":
@@ -322,7 +299,10 @@ namespace uBasicConsole
             System.Diagnostics.Trace.Listeners.Remove(listener);
             listener.Close();
             listener.Dispose();
-
+            if (!Directory.Exists(logPath.Value))
+            {
+                Directory.CreateDirectory(logPath.Value);
+            }
             dailyRolling = new FileStreamWithRolling(logFilenamePath, new TimeSpan(1, 0, 0, 0), FileMode.Append);
             listener = new TextWriterTraceListenerWithTime(dailyRolling);
             Trace.AutoFlush = true;
@@ -336,54 +316,12 @@ namespace uBasicConsole
             Trace.TraceInformation("Use Log Name=" + logName);
             Trace.TraceInformation("Use Log Path=" + logPath);
 
-            if ((fileName.Value.ToString().Length > 0) && (filePath.Value.ToString().Length > 0))
-            {
-                filenamePath = filePath.Value.ToString() + Path.DirectorySeparatorChar + fileName.Value.ToString() + ".bas";
-                if (File.Exists(filenamePath) != false)
-                {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new uBasicUI(filePath.Value.ToString(), fileName.Value.ToString()));
 
-                    byte[] program;
-                    try
-                    {
-                        using (StreamReader sr = new StreamReader(filenamePath))
-                        {
-                            string text = sr.ReadToEnd();
-                            program = System.Text.Encoding.ASCII.GetBytes(text);
-                        }
+            Debug.WriteLine("Exit Main()");
 
-                        // 
-
-                        IInterpreter basic = new uBasic(program, consoleIO);
-                        basic.Init(0);
-
-                        try
-                        {
-                            do
-                            {
-                                basic.Run();
-                            } while (!basic.IsFinished());
-                        }
-                        catch (Exception e)
-                        {
-                            TraceInternal.TraceError(e.ToString());
-                        }
-                    }
-                    catch (Exception e1)
-                    {
-                        TraceInternal.TraceVerbose(e1.ToString());
-                        TraceInternal.TraceError("Input " + e1.Message);
-                    }
-                }
-                else
-                {
-                    TraceInternal.TraceError("Program file " + filenamePath + " not found");
-                }
-            }
-            else
-            {
-                TraceInternal.TraceError("Program name not supplied");
-            }
-            Debug.WriteLine("Exit Main()");   
         }
 
         #endregion
@@ -398,42 +336,7 @@ namespace uBasicConsole
             }
         }
 
-        private static bool ConsoleCtrlCheck(CtrlTypes ctrlType)
-        {
-            Debug.WriteLine("Enter ConsoleCtrlCheck()");
-
-            switch (ctrlType)
-            {
-                case CtrlTypes.CTRL_C_EVENT:
-                    isclosing = true;
-                    TraceInternal.TraceVerbose("CTRL+C received:");
-                    break;
-
-                case CtrlTypes.CTRL_BREAK_EVENT:
-                    isclosing = true;
-                    TraceInternal.TraceVerbose("CTRL+BREAK received:");
-                    break;
-
-                case CtrlTypes.CTRL_CLOSE_EVENT:
-                    isclosing = true;
-                    TraceInternal.TraceVerbose("Program being closed:");
-                    break;
-
-                case CtrlTypes.CTRL_LOGOFF_EVENT:
-                case CtrlTypes.CTRL_SHUTDOWN_EVENT:
-                    isclosing = true;
-                    TraceInternal.TraceVerbose("User is logging off:");
-                    break;
-
-            }
-            Debug.WriteLine("Exit ConsoleCtrlCheck()");
-
-            Environment.Exit(0);
-
-            return (true);
-
-        }
-
         #endregion
+
     }
 }

@@ -58,6 +58,7 @@ namespace uBasicLibrary
         {
             _defaultIO = consoleIO;
             _program = program;
+            _ended = false;
 
             // Assign the delegate to the instance field
             _callerDelegate = new CallbackDelegate(MyCallback);
@@ -70,13 +71,23 @@ namespace uBasicLibrary
         {
             Debug.WriteLine("In Init()");
             ubasic_init(_program);
+            _ended = false;
             Debug.WriteLine("Out Init()");
         }
 
         public void Run()
         {
             Debug.WriteLine("In Run()");
-            ubasic_run();
+            try
+            {         
+                ubasic_run();
+            }
+            catch (Exception ex)
+            {
+                TraceInternal.TraceError("uBasic Run() Exception: " + ex.Message);
+                throw;
+            }
+
             Debug.WriteLine("Out Run()");
         }
 

@@ -5,11 +5,15 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ApplicationIcon>ubasic.ico</ApplicationIcon>
     <AssemblyTitle>uBasicConsole</AssemblyTitle>
-    <Company>Jeremy Green</Company>
+    <Company>32high</Company>
     <Product>uBasicConsole</Product>
-    <Copyright>Copyright © Jeremy Green, 32high. 2008</Copyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <Copyright>Copyright © Jeremy Green, 32high. 2025</Copyright>
+    <PackageIcon>ubasic.png</PackageIcon>
+
+    <!-- For auto-versioning -->
+    <AssemblyVersion>1.0.*</AssemblyVersion>
+    <Deterministic>false</Deterministic>
+    
   </PropertyGroup>
   <ItemGroup>
     <Content Include="uBasic.ico" />
@@ -23,8 +27,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Update="test.bas">
+    <None Update="Images\ubasic.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Samples\hello_world.bas">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Samples\test.bas">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="ubasic.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
