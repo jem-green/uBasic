@@ -5,6 +5,7 @@ rmdir .\ubasic-library
 xcopy C:\Users\jemgr\source\repos\uBasic\ .\ubasic-library\ /S /Y
 xcopy C:\Users\jemgr\source\repos\uBasic\ubasic.dll ..\ubasicconsole\ /S /Y
 xcopy C:\Users\jemgr\source\repos\uBasic\ubasic.dll ..\ubasicform\ /S /Y
+xcopy C:\Users\jemgr\source\repos\uBasic\ubasic.dll ..\ubasicapp\ /S /Y
 
 rmdir .\display\ /S /Q
 xcopy c:\source\git\cs.net\display\displaylibrary\bin\debug\ .\display\ /S /Y

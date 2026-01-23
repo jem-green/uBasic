@@ -45,9 +45,9 @@ namespace uBasicApp
             formatToolStripMenuItem = new ToolStripMenuItem();
             fontToolStripMenuItem = new ToolStripMenuItem();
             colorToolStripMenuItem = new ToolStripMenuItem();
-            pictureBox1 = new PictureBox();
+            consolePcitureBox = new PictureBox();
             consoleMenuStrip.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)consolePcitureBox).BeginInit();
             SuspendLayout();
             // 
             // consoleMenuStrip
@@ -119,23 +119,24 @@ namespace uBasicApp
             colorToolStripMenuItem.Text = "Color";
             colorToolStripMenuItem.Click += FormatColorMenuItem_Click;
             // 
-            // pictureBox1
+            // consolePcitureBox
             // 
-            pictureBox1.Dock = DockStyle.Fill;
-            pictureBox1.Location = new Point(0, 42);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(866, 635);
-            pictureBox1.TabIndex = 2;
-            pictureBox1.TabStop = false;
-            pictureBox1.Paint += pictureBox1_Paint;
-            pictureBox1.PreviewKeyDown += pictureBox1_PreviewKeyDown;
+            consolePcitureBox.BackgroundImageLayout = ImageLayout.None;
+            consolePcitureBox.Dock = DockStyle.Fill;
+            consolePcitureBox.Location = new Point(0, 42);
+            consolePcitureBox.Name = "consolePcitureBox";
+            consolePcitureBox.Size = new Size(866, 685);
+            consolePcitureBox.TabIndex = 2;
+            consolePcitureBox.TabStop = false;
+            consolePcitureBox.Paint += ConsolePcitureBox_Paint;
+            consolePcitureBox.PreviewKeyDown += ConsolePcitureBox_PreviewKeyDown;
             // 
             // uBasicUI
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(866, 677);
-            Controls.Add(pictureBox1);
+            ClientSize = new Size(866, 727);
+            Controls.Add(consolePcitureBox);
             Controls.Add(consoleMenuStrip);
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = consoleMenuStrip;
@@ -146,7 +147,7 @@ namespace uBasicApp
             Load += ConsoleForm_Load;
             consoleMenuStrip.ResumeLayout(false);
             consoleMenuStrip.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)consolePcitureBox).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
@@ -163,7 +164,7 @@ namespace uBasicApp
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem recentFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private PictureBox pictureBox1;
+        private PictureBox consolePcitureBox;
     }
 }
 

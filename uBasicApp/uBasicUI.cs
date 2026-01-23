@@ -17,10 +17,18 @@ namespace uBasicApp
         #region Fields
 
         // Prepare Basic
-        static IDefaultIO _textBoxIO = null;
+        static IDefaultIO _displayIO = null;
         IInterpreter _basic = null;
         int _pos = 0;
         bool _stopped = true;
+
+        // display updating fix
+
+        bool _updated = false;
+        int _height = 32;
+        int _width = 32;
+        int _scale = 1;
+        int _aspect = 1;
 
 
         // Declare a delegate used to communicate with the UI thread
@@ -42,7 +50,7 @@ namespace uBasicApp
 
         // Keyboard matrix
 
-        KeyboardMatrix _matrix;
+        KeyboardMapper _matrix;
 
         string _lineBuffer = "";
 
@@ -57,7 +65,12 @@ namespace uBasicApp
 
             // Initialise the display
 
-            _mtd = new MonochromeTextDisplay(32, 32, 4);
+            _width = 32;
+            _height = 32;
+            _scale = 2;
+            _aspect = 1;
+
+            _mtd = new MonochromeTextDisplay(_width, _height, _scale, _aspect);
 
             ROMFont rasterFont = new ROMFont();
             string fileName = "IBM_VGA_8x8.bin";
@@ -70,11 +83,23 @@ namespace uBasicApp
             _mtd.BackgroundColour = new SolidColour(0, 0, 0);                // Black background
             _mtd.Clear(); // Calls generate internally
 
-            _textBoxIO = new TextBoxIO();
-            _textBoxIO.TextReceived += new EventHandler<TextEventArgs>(OnMessageReceived);
+            _displayIO = new DisplayIO();
+            _displayIO.TextReceived += new EventHandler<TextEventArgs>(OnMessageReceived);
 
             // Initialise the delegate
             this.updateTextDelegate = new UpdateTextDelegate(this.UpdateText);
+
+            // Fit the picturebox to the form
+
+            consolePcitureBox.Select();
+
+            // Fix the form size
+
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            SetLimits();
+
 
             // Add most recent used
             _mruMenu = new MruStripMenuInline(fileMenuItem, recentFileToolStripMenuItem, new MruStripMenu.ClickedHandler(OnMruFile), 4);
@@ -102,14 +127,14 @@ namespace uBasicApp
                     }
 
                     _mruMenu.AddFile(filenamePath);
-                    _basic = new uBasic(program, _textBoxIO);
+                    _basic = new uBasic(program, _displayIO);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));
-                    _textBoxIO.Reset();
+                    _displayIO.Reset();
                     this._workerThread.Start();
-                    pictureBox1.Visible = true;
-                    pictureBox1.Enabled = true;
+                    consolePcitureBox.Visible = true;
+                    consolePcitureBox.Enabled = true;
                 }
                 catch (Exception e1)
                 {
@@ -127,8 +152,8 @@ namespace uBasicApp
             string path = "";
             string filename = "";
 
-            pictureBox1.Enabled = false;
-            pictureBox1.Visible = false;
+            consolePcitureBox.Enabled = false;
+            consolePcitureBox.Visible = false;
             if (_stopped == false)
             {
                 _basic.Stop();
@@ -170,14 +195,14 @@ namespace uBasicApp
                         program = System.Text.Encoding.ASCII.GetBytes(text);
                     }
 
-                    _basic = new uBasic(program, _textBoxIO);
+                    _basic = new uBasic(program, _displayIO);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));
-                    _textBoxIO.Reset();
+                    _displayIO.Reset();
                     this._workerThread.Start();
-                    pictureBox1.Visible = true;
-                    pictureBox1.Enabled = true;
+                    consolePcitureBox.Visible = true;
+                    consolePcitureBox.Enabled = true;
                 }
                 catch (Exception e1)
                 {
@@ -192,14 +217,25 @@ namespace uBasicApp
 
         private void UpdateText()
         {
-            string output = _textBoxIO.Output;
+            string output = _displayIO.Output;
             if (output.Length > 0)
             {
                 foreach (char c in output)
                 {
                     if (c == '\n')
                     {
-                        _mtd.Set(0, _mtd.Row + 1);
+                        int row = _mtd.Row;
+                        if (row == _mtd.Height - 1)
+                        {
+                            _mtd.Scroll();
+                            _mtd.Set(0, row);
+                            _mtd.Generate();
+                        }
+                        else
+                        {
+                            _mtd.Set(0, row + 1);
+                        }
+
                     }
                     else if (c == '\r')
                     {
@@ -210,7 +246,7 @@ namespace uBasicApp
                         _mtd.Write((byte)c);
                     }
                 }
-                pictureBox1.Invalidate();
+                consolePcitureBox.Invalidate();
             }
         }
 
@@ -247,8 +283,8 @@ namespace uBasicApp
             string path = "";
             string filename = "";
 
-            pictureBox1.Enabled = false;
-            pictureBox1.Visible = false;
+            consolePcitureBox.Enabled = false;
+            consolePcitureBox.Visible = false;
             if (_stopped == false)
             {
                 _basic.Stop();
@@ -297,14 +333,14 @@ namespace uBasicApp
                         program = System.Text.Encoding.ASCII.GetBytes(text);
                     }
                     _mruMenu.AddFile(filenamePath);
-                    _basic = new uBasic(program, _textBoxIO);
+                    _basic = new uBasic(program, _displayIO);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));
-                    _textBoxIO.Reset();
+                    _displayIO.Reset();
                     this._workerThread.Start();
-                    pictureBox1.Visible = true;
-                    pictureBox1.Enabled = true;
+                    consolePcitureBox.Visible = true;
+                    consolePcitureBox.Enabled = true;
                 }
                 catch (Exception e1)
                 {
@@ -360,7 +396,7 @@ namespace uBasicApp
 
             // Fixed windows size
 
-            this.Width = _textBoxIO.Width;
+            this.Width = _displayIO.Width;
 
             // Set window size
             if (Settings.Default.ConsoleSize != null)
@@ -396,7 +432,7 @@ namespace uBasicApp
 
             if (_stopped == false)
             {
-                _textBoxIO.Input = "\r\n";
+                _displayIO.Input = "\r\n";
                 _basic.Stop();
                 if (_workerThread != null && _workerThread.IsAlive)
                 {
@@ -501,16 +537,14 @@ namespace uBasicApp
             Debug.WriteLine("Out SaveFiles");
         }
 
-        #endregion
-
-        private void pictureBox1_Paint(object sender, PaintEventArgs e)
+        private void ConsolePcitureBox_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             Bitmap b = _mtd.Bitmap;
             g.DrawImageUnscaled(b, 0, 0);
         }
 
-        private void pictureBox1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        private void ConsolePcitureBox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
 
             byte key = _matrix.ToASCII(e.KeyValue, e.Shift, e.Control, e.Alt);
@@ -590,8 +624,36 @@ namespace uBasicApp
 
                     _lineBuffer += (char)key;           // Append to line buffer
                 }
-                pictureBox1.Invalidate();
+                consolePcitureBox.Invalidate();
             }
         }
+
+        private void SetLimits()
+        {
+            int hbit = _mtd.Font.Horizontal;
+            int vbit = _mtd.Font.Vertical;
+            _mtd.Scale = _scale;
+            _mtd.Aspect = _aspect;
+            int height = 39 + this.MainMenuStrip.Height;    // Must be some fixed elements to the form
+            int width = 16;                                 // Must have some fixed element to the form (8 pixels each side)
+            if (_aspect > 1)
+            {
+                height = height + _scale * _height * 8;
+                width = width + _scale * _width * _aspect * 8;
+            }
+            else
+            {
+                height = height + _scale * _height * 8 / _aspect;
+                width = width + _scale * _width * _aspect * 8;
+            }
+
+            this.MinimumSize = new Size(width, height); // 40
+            this.MaximumSize = new Size(width, height);
+
+            this.consolePcitureBox.Invalidate();
+        }
+
+        #endregion
+
     }
 }

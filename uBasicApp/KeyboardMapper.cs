@@ -11,7 +11,7 @@ namespace uBasicApp
     /// <summary>
     /// Mapping the PreviewKey key events to the ASCII characters
     /// </summary>
-    public class KeyboardMatrix
+    public class KeyboardMapper
     {
         #region Fields
 
@@ -57,7 +57,7 @@ namespace uBasicApp
 
         #endregion
         #region Constructors
-        public KeyboardMatrix()
+        public KeyboardMapper()
         {
             _keys = new Dictionary<int, Key>();
 

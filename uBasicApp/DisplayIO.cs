@@ -4,7 +4,7 @@ using uBasicLibrary;
 
 namespace uBasicApp
 {
-    public class TextBoxIO : IDefaultIO
+    public class DisplayIO : IDefaultIO
     {
         #region Event handling
 

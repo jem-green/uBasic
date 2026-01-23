@@ -10,13 +10,14 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <ApplicationIcon>uBasic.ico</ApplicationIcon>
-
+    <Authors>32high</Authors>
     <Copyright>Copyright © Jeremy Green, 32high. 2025</Copyright>
     <PackageIcon>ubasic.png</PackageIcon>
 
     <!-- For auto-versioning -->
-    <AssemblyVersion>1.0.*</AssemblyVersion>
+    <AssemblyVersion>1.1.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
+    <StartupObject>uBasicApp.Program</StartupObject>
     
   </PropertyGroup>
   <ItemGroup>
