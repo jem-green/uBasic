@@ -7,121 +7,122 @@ using TracerLibrary;
 
 namespace uBasicLibrary
 {
-    public class uBasic : IInterpreter
+    public class uBasic : IInterpreter, IDisposable
     {
 
         [DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ubasic_run();
 
+        // NOTE: change signatures to accept pointers so we can pin the managed buffer
         [DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ubasic_init(byte[] program);
+        public static extern void ubasic_init(byte[] memory);
+
+        [DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ubasic_reset();
 
         [DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int ubasic_finished();
 
-        // Check returning data types from methods
+        [DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ubasic_load_program(byte[] program);
 
-        //[DllImport("interface.dll", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern int getPc();
 
-        //[DllImport("interface.dll", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern IntPtr outChar();
-
-        //// Checking passing data types into methods
-
-        //[DllImport("interface.dll", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void inChar([MarshalAs(UnmanagedType.LPStr)] string msg);
-
-        //// Callback function to receive messages from C
-
-        // Define the delegate type
-
+        // Callback delegate (keeps string marshalling as before)
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void CallbackDelegate(string valueStr);
 
-        // Import the C functions
-
         [DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ubasic_callback(IntPtr cb);
-
-        //[DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void trigger_callback(string value);
 
         // Store the delegate as an instance field to prevent it from being garbage collected
         private CallbackDelegate _callerDelegate;
 
         IDefaultIO _defaultIO = null;
         bool _ended = false;
-        readonly byte[] _program;
+        byte[] _program;
+        byte[] _memory = new byte[4096];
 
-        public uBasic(byte[] program, IDefaultIO consoleIO)
+        public uBasic(byte[] memory, IDefaultIO consoleIO)
         {
             _defaultIO = consoleIO;
-            _program = program;
+
+            // Ensure we have a sufficiently large memory buffer. If caller passed null create default.
+            _memory = memory;
             _ended = false;
 
             // Assign the delegate to the instance field
             _callerDelegate = new CallbackDelegate(MyCallback);
             IntPtr ptr = Marshal.GetFunctionPointerForDelegate(_callerDelegate);
             ubasic_callback(ptr);
-
         }
 
-        public void Init(int position)
+        public void Init()
         {
-            Debug.WriteLine("In Init()");
-            ubasic_init(_program);
+            Debug.WriteLine("In uBasic.Init()");
+            // Pass the pinned pointer to native init
+            ubasic_init(_memory);
             _ended = false;
-            Debug.WriteLine("Out Init()");
+            Debug.WriteLine("Out uBasic.Init()");
+        }
+
+        public void Load(byte[] program)
+        {
+            Debug.WriteLine("In uBasic.Load()");
+            _program = program ?? Array.Empty<byte>();
+
+            // Call native loader with pinned memory pointer. program array will be pinned for duration of the call by the marshaller.
+            ubasic_load_program(_program);
+            _ended = false;
+            Debug.WriteLine("Out uBasic.Load()");
+        }
+
+        public void Reset()
+        {
+            Debug.WriteLine("In uBasic.Reset()");
+            ubasic_reset();
+            _ended = false;
+            Debug.WriteLine("Out uBasic.Reset()");
         }
 
         public void Run()
         {
-            Debug.WriteLine("In Run()");
+            Debug.WriteLine("In uBasic.Run()");
             try
-            {         
+            {
                 ubasic_run();
             }
             catch (Exception ex)
             {
-                TraceInternal.TraceError("uBasic Run() Exception: " + ex.Message);
+                TraceInternal.TraceError("Run exception: " + ex.Message);
                 throw;
             }
 
-            Debug.WriteLine("Out Run()");
+            Debug.WriteLine("Out uBasic.Run()");
         }
 
         public void Stop()
         {
-            Debug.WriteLine("In Stop()");
+            Debug.WriteLine("In uBasic.Stop()");
             _ended = true;
-            Debug.WriteLine("Out Stop()");
+            Debug.WriteLine("Out uBasic.Stop()");
         }
 
-        /// <summary>
-        /// Finished()
-        /// </summary>
-        /// <returns></returns>
         public bool IsFinished()
         {
-            Debug.WriteLine("In Finished()");
+            Debug.WriteLine("In uBasic.IsFinished()");
             bool finished = false;
             if ((ubasic_finished() != 0) || _ended)
             {
-                TraceInternal.TraceVerbose("Out Finished() - true");
+                TraceInternal.TraceVerbose("Program has finished");
                 finished = true;
             }
-            Debug.WriteLine("Out Finished()");
+            Debug.WriteLine("Out uBasic.IsFinished()");
             return (finished);
         }
 
-        /// <summary>
-        /// Raise exception
-        /// </summary>
-        /// <param name="text"></param>
         public void Abort(string text)
         {
-            Debug.WriteLine("In Abort()");
+            Debug.WriteLine("In uBasic.Abort()");
             string message = text + " @ "; // + currentLineNumber;
             throw new Exception(message);
         }
@@ -129,6 +130,13 @@ namespace uBasicLibrary
         private void MyCallback(string valueStr)
         {
             _defaultIO.Out(valueStr);
+        }
+
+        // IDisposable to free pinned handle
+        public void Dispose()
+        {
+            _memory = null;
+            GC.SuppressFinalize(this);
         }
     }
 }

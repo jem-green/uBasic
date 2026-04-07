@@ -42,6 +42,8 @@
 
 #include <stdio.h> /* printf() */
 #include <stdlib.h> /* exit() */
+#include <string.h> /* strlen(), memcpy(), sprintf() */
+#include <stdint.h>
 
 // Probably private
 
@@ -54,23 +56,20 @@ static void index_free(void);
 static VARIABLE_TYPE expr(void);
 void set_variable(int varum, VARIABLE_TYPE value);
 VARIABLE_TYPE get_variable(int varnum);
+static void gosub_push(int32_t line_num);
+static int32_t gosub_pop(void);
+static void for_push(for_state state);
+static for_state for_pop(void);
 
 static char const *program_ptr;
 #define MAX_STRINGLEN 40
 static char string[MAX_STRINGLEN];
 
-#define MAX_GOSUB_STACK_DEPTH 10
-static int gosub_stack[MAX_GOSUB_STACK_DEPTH];
-static int gosub_stack_ptr;
-
-struct for_state {
-  int line_after_for;
-  int for_variable;
-  int to;
-};
-#define MAX_FOR_STACK_DEPTH 4
-static struct for_state for_stack[MAX_FOR_STACK_DEPTH];
-static int for_stack_ptr;
+static uint8_t *mem_base = NULL;
+static int32_t *gosub_depth_cell = NULL;
+static int32_t *for_depth_cell = NULL;
+static int32_t *gosub_stack_mem = NULL;
+static for_state *for_stack = NULL;
 
 struct line_index {
   int line_number;
@@ -92,26 +91,90 @@ poke_func poke_function = NULL;
 
 static Callback stored_callback = 0;
 
+/*
+ * Buffer passed to ubasic_init (see UBASIC_*_OFFSET in ubasic.h):
+ *   gosub depth, for depth, gosub stack[], for stack[], then NUL-terminated program.
+ */
+
+
+
+
 /*---------------------------------------------------------------------------*/
 //Public functions
 /*---------------------------------------------------------------------------*/
-void ubasic_init(const char *program){
-  program_ptr = program;
-  for_stack_ptr = gosub_stack_ptr = 0;
-  index_free();
-  tokenizer_init(program);
-  ended = 0;
+void emit(const char* value) {
+  //
+  DEBUG_PRINTF(value);
+  if (stored_callback) {
+      stored_callback(value);
+  }
 }
 /*---------------------------------------------------------------------------*/
-void ubasic_init_peek_poke(const char *program, peek_func peek, poke_func poke){
-  program_ptr = program;
-  for_stack_ptr = gosub_stack_ptr = 0;
+void ubasic_init(uint8_t *memory) {
+  mem_base = memory;
+  gosub_depth_cell = (int32_t *)(memory + UBASIC_MEM_GOSUB_DEPTH_OFFSET);
+  for_depth_cell = (int32_t *)(memory + UBASIC_MEM_FOR_DEPTH_OFFSET);
+  gosub_stack_mem = (int32_t *)(memory + UBASIC_MEM_GOSUB_STACK_OFFSET);
+  for_stack = (for_state *)(memory + UBASIC_MEM_FOR_STACK_OFFSET);
+  *gosub_depth_cell = 0;
+  *for_depth_cell = 0;
+  program_ptr = (char const *)(memory + UBASIC_MEM_PROGRAM_OFFSET);
+  memory[UBASIC_MEM_PROGRAM_OFFSET] = '\0';
   index_free();
+  tokenizer_init(program_ptr);
+  ended = 0;
+  #if VERBOSE
+    DEBUG_PRINTF("ubasic_init: Initializing uBasic.\n");
+  #endif
+}
+/*---------------------------------------------------------------------------*/
+void ubasic_init_peek_poke(uint8_t *memory, peek_func peek, poke_func poke) {
+  ubasic_init(memory);
   peek_function = peek;
   poke_function = poke;
-  tokenizer_init(program);
-  ended = 0;
+  #if VERBOSE
+    DEBUG_PRINTF("ubasic_init_peek_poke: Initializing uBasic with peek/poke.\n");
+  #endif
 }
+/*---------------------------------------------------------------------------*/
+void ubasic_reset(void) {
+  index_free();
+  tokenizer_reset();
+  if (gosub_depth_cell != NULL) {
+    *gosub_depth_cell = 0;
+  }
+  if (for_depth_cell != NULL) {
+    *for_depth_cell = 0;
+  }
+  ended = 0;
+  emit("--- Resetting uBasic ---\n");
+  #if VERBOSE
+    DEBUG_PRINTF("ubasic_reset: Resetting uBasic.\n");
+  #endif
+}
+
+void ubasic_load_program(const char *program) {
+  size_t len;
+
+  if (mem_base == NULL) {
+    DEBUG_PRINTF("ubasic_load_program: call ubasic_init first.\n");
+    return;
+  }
+  index_free();
+  len = strlen(program);
+  memcpy(mem_base + UBASIC_MEM_PROGRAM_OFFSET, program, len + 1);
+  program_ptr = (char const *)(mem_base + UBASIC_MEM_PROGRAM_OFFSET);
+  tokenizer_init(program_ptr);
+  *gosub_depth_cell = 0;
+  *for_depth_cell = 0;
+  ended = 0;
+  #if VERBOSE
+    DEBUG_PRINTF("ubasic_load_program: Loaded program of length %u.\n", (unsigned)len);
+  #endif
+}
+
+
+
 /*---------------------------------------------------------------------------*/
 int ubasic_finished(void){
   return ended || tokenizer_finished();
@@ -124,28 +187,16 @@ void ubasic_run(void){
     #endif
     return;
   }
-
   line_statement();
 }
 
-/*---------------------------------------------------------------------------*/
-void emit(const char* value) {
-  //
-  DEBUG_PRINTF(value);
-  if (stored_callback) {
-      stored_callback(value);
-  }
-}
 
+
+
+/*---------------------------------------------------------------------------*/
 void ubasic_callback(Callback cb) {
     stored_callback = cb;
 }
-
-/*---------------------------------------------------------------------------*/
-//void ubasic_input(t value) {
-  //
-//}
-
 /*---------------------------------------------------------------------------*/
 // Private functions
 /*---------------------------------------------------------------------------*/
@@ -290,7 +341,7 @@ static void index_free(void) {
   if(line_index_head != NULL) {
     line_index_current = line_index_head;
     do {
-      DEBUG_PRINTF("Freeing index for line %d.\n", line_index_current->line_number);
+      DEBUG_PRINTF("index_free: Freeing index for line %d.\n", line_index_current->line_number);
       line_index_head = line_index_current;
       line_index_current = line_index_current->next;
       free(line_index_head);
@@ -395,6 +446,7 @@ static void jump_linenum(int linenum) {
 /*---------------------------------------------------------------------------*/
 static void goto_statement(void) {
   accept(TOKENIZER_GOTO);
+  DEBUG_PRINTF("jump_linenum: goto.\n");
   jump_linenum(tokenizer_num());
 }
 /*---------------------------------------------------------------------------*/
@@ -479,9 +531,11 @@ static void gosub_statement(void){
   linenum = tokenizer_num();
   accept(TOKENIZER_NUMBER);
   accept(TOKENIZER_LF);
-  if(gosub_stack_ptr < MAX_GOSUB_STACK_DEPTH) {
-    gosub_stack[gosub_stack_ptr] = tokenizer_num();
-    gosub_stack_ptr++;
+  if(*gosub_depth_cell < UBASIC_MAX_GOSUB_STACK_DEPTH) {
+
+    /* Push the current return line into the configured gosub stack (memory or internal). */
+    gosub_push(tokenizer_num());
+
     jump_linenum(linenum);
   } else {
     DEBUG_PRINTF("gosub_statement: gosub stack exhausted.\n");
@@ -490,9 +544,9 @@ static void gosub_statement(void){
 /*---------------------------------------------------------------------------*/
 static void return_statement(void){
   accept(TOKENIZER_RETURN);
-  if(gosub_stack_ptr > 0) {
-    gosub_stack_ptr--;
-    jump_linenum(gosub_stack[gosub_stack_ptr]);
+  if(*gosub_depth_cell > 0) {
+    int32_t retline = gosub_pop();
+    jump_linenum(retline);
   } else {
     DEBUG_PRINTF("return_statement: non-matching return.\n");
   }
@@ -500,6 +554,7 @@ static void return_statement(void){
 
 static void rem_statement(void) {
   accept(TOKENIZER_REM);
+  DEBUG_PRINTF("rem_statement: Skipping comment.\n");
   tokeniser_skip();
   if (tokenizer_token() == TOKENIZER_LF) {
     accept(TOKENIZER_LF);
@@ -513,18 +568,21 @@ static void next_statement(void){
   accept(TOKENIZER_NEXT);
   var = tokenizer_variable_num();
   accept(TOKENIZER_VARIABLE);
-  if(for_stack_ptr > 0 &&
-     var == for_stack[for_stack_ptr - 1].for_variable) {
-    set_variable(var,
-		get_variable(var) + 1);
-    if(get_variable(var) <= for_stack[for_stack_ptr - 1].to) {
-      jump_linenum(for_stack[for_stack_ptr - 1].line_after_for);
+  if(*for_depth_cell > 0 &&
+     var == (int)(for_stack[*for_depth_cell - 1].for_variable - 'a')) {
+    for_state top = for_stack[*for_depth_cell - 1];
+    set_variable(var, get_variable(var) + 1);
+    if(get_variable(var) <= top.to) {
+      jump_linenum(top.line_after_for);
     } else {
-      for_stack_ptr--;
+      for_pop();
       accept(TOKENIZER_LF);
     }
   } else {
-    DEBUG_PRINTF("next_statement: non-matching next (expected %d, found %d).\n", for_stack[for_stack_ptr - 1].for_variable, var);
+    if (*for_depth_cell > 0) {
+      DEBUG_PRINTF("next_statement: non-matching next (expected %c, found %c).\n",
+          for_stack[*for_depth_cell - 1].for_variable, (char)('a' + var));
+    }
     accept(TOKENIZER_LF);
   }
 
@@ -542,18 +600,15 @@ static void for_statement(void) {
   to = expr();
   accept(TOKENIZER_LF);
 
-  if(for_stack_ptr < MAX_FOR_STACK_DEPTH) {
-    for_stack[for_stack_ptr].line_after_for = tokenizer_num();
-    for_stack[for_stack_ptr].for_variable = for_variable;
-    for_stack[for_stack_ptr].to = to;
+  {
+    for_state st;
+    st.line_after_for = (int32_t)tokenizer_num();
+    st.for_variable = (char)('a' + for_variable);
+    st.to = (int32_t)to;
+    for_push(st);
     #if VERBOSE
-      DEBUG_PRINTF("for_statement: new for, var %d to %d.\n",
-		for_stack[for_stack_ptr].for_variable,
-        for_stack[for_stack_ptr].to);
+      DEBUG_PRINTF("for_statement: new for, var %c to %d.\n", st.for_variable, (int)st.to);
     #endif
-    for_stack_ptr++;
-  } else {
-    DEBUG_PRINTF("for_statement: for stack depth exceeded.\n");
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -588,6 +643,7 @@ static void poke_statement(void)
 static void end_statement(void)
 {
   accept(TOKENIZER_END);
+  DEBUG_PRINTF("end_statement: Ending program.\n");
   ended = 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -664,3 +720,53 @@ static VARIABLE_TYPE get_variable(int varnum){
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static int32_t gosub_pop(void) {
+  int32_t ptr = *gosub_depth_cell;
+  if (ptr == 0) {
+    DEBUG_PRINTF("gosub_pop: underflow (ptr=0)\n");
+    return 0;
+  }
+  ptr--;
+  *gosub_depth_cell = ptr;
+  return gosub_stack_mem[ptr];
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void gosub_push(int32_t line_num) {
+  int32_t ptr = *gosub_depth_cell;
+  if (ptr >= UBASIC_MAX_GOSUB_STACK_DEPTH) {
+    DEBUG_PRINTF("gosub_push: overflow (ptr=%d)\n", (int)ptr);
+    return;
+  }
+  gosub_stack_mem[ptr] = line_num;
+  *gosub_depth_cell = ptr + 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void for_push(for_state state) {
+  int32_t depth = *for_depth_cell;
+  if (depth < UBASIC_MAX_FOR_STACK_DEPTH) {
+    for_stack[depth++] = state;
+    *for_depth_cell = depth;
+  } else {
+    DEBUG_PRINTF("for_push: for stack depth exceeded.\n");
+  }
+}
+
+static for_state for_pop(void) {
+  for_state error_state = {-1, '\0', 0};
+  int32_t depth = *for_depth_cell;
+  if (depth > 0) {
+    for_state value = for_stack[--depth];
+    *for_depth_cell = depth;
+    return value;
+  } else {
+    DEBUG_PRINTF("for_pop: for stack underflow.\n");
+    return error_state;
+  }
+}
+
+
+

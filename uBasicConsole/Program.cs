@@ -319,7 +319,7 @@ namespace uBasicConsole
             // Redirect the output
 
             listener.Flush();
-            System.Diagnostics.Trace.Listeners.Remove(listener);
+            Trace.Listeners.Remove(listener);
             listener.Close();
             listener.Dispose();
 
@@ -329,7 +329,7 @@ namespace uBasicConsole
             SourceLevels sourceLevels = TraceInternal.TraceLookup(traceLevels.Value.ToString());
             fileTraceFilter = new System.Diagnostics.EventTypeFilter(sourceLevels);
             listener.Filter = fileTraceFilter;
-            System.Diagnostics.Trace.Listeners.Add(listener);
+            Trace.Listeners.Add(listener);
 
             Trace.TraceInformation("Use Name=" + fileName);
             Trace.TraceInformation("Use Path=" + filePath);
@@ -343,6 +343,7 @@ namespace uBasicConsole
                 {
 
                     byte[] program;
+                    byte[] memory;
                     try
                     {
                         using (StreamReader sr = new StreamReader(filenamePath))
@@ -353,8 +354,10 @@ namespace uBasicConsole
 
                         // 
 
-                        IInterpreter basic = new uBasic(program, consoleIO);
-                        basic.Init(0);
+                        memory = new byte[4096];
+                        IInterpreter basic = new uBasic(memory, consoleIO);
+                        basic.Init();
+                        basic.Load(program);
 
                         try
                         {

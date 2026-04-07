@@ -36,11 +36,9 @@ namespace uBasicApp
             filePath.Source = IParameter.SourceType.App;
 
             Parameter<string> logPath = new Parameter<string>("logPath", "");
-            Parameter<string> logName = new Parameter<string>("logNmae", "ubasicform");
+            Parameter<string> logName = new Parameter<string>("logNmae", "ubasicapp");
 
-            logPath.Value = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + System.IO.Path.DirectorySeparatorChar + "ubasic";
-            //logPath.Value = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + System.IO.Path.DirectorySeparatorChar + "uBasic";
-            //logPath.Value = "d:\\";
+            logPath.Value = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + System.IO.Path.DirectorySeparatorChar + "ubasic";
             logPath.Source = IParameter.SourceType.App;
 
             Parameter<SourceLevels> traceLevels = new Parameter<SourceLevels>("traceLevels", TraceInternal.TraceLookup("VERBOSE"));

@@ -30,21 +30,52 @@
 #ifndef __UBASIC_H__
 #define __UBASIC_H__
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "vartype.h"
 
 typedef VARIABLE_TYPE (*peek_func)(VARIABLE_TYPE);
 typedef void (*poke_func)(VARIABLE_TYPE, VARIABLE_TYPE);
 
+/*
+ * Single buffer layout (aligned with init(uint8_t* memory) style):
+ *   int32_t gosub_depth at offset 0
+ *   int32_t for_depth at offset 4
+ *   int32_t gosub_stack[UBASIC_MAX_GOSUB_STACK_DEPTH]
+ *   struct for_state for_stack[UBASIC_MAX_FOR_STACK_DEPTH]
+ *   program bytes (NUL-terminated; capacity = buffer size - UBASIC_MEM_PROGRAM_OFFSET)
+ */
+#define UBASIC_MAX_GOSUB_STACK_DEPTH 10
+#define UBASIC_MAX_FOR_STACK_DEPTH 4
+
+typedef struct for_state {
+  int32_t line_after_for;
+  char for_variable; /* ASCII 'a'..'z' (matches tokenizer single-letter vars) */
+  int32_t to;
+} for_state;
+
+#define UBASIC_MEM_GOSUB_DEPTH_OFFSET 0
+#define UBASIC_MEM_FOR_DEPTH_OFFSET   4
+#define UBASIC_MEM_GOSUB_STACK_OFFSET 8
+#define UBASIC_MEM_FOR_STACK_OFFSET \
+  (UBASIC_MEM_GOSUB_STACK_OFFSET + UBASIC_MAX_GOSUB_STACK_DEPTH * (int)sizeof(int32_t))
+#define UBASIC_MEM_PROGRAM_OFFSET \
+  (UBASIC_MEM_FOR_STACK_OFFSET + UBASIC_MAX_FOR_STACK_DEPTH * (int)sizeof(for_state))
+
+#define UBASIC_MIN_MEMORY_BYTES (UBASIC_MEM_PROGRAM_OFFSET + 1u)
+
 // Public
 
-__declspec(dllexport) void ubasic_init(const char *program);
+__declspec(dllexport) void ubasic_init(uint8_t *memory);
+__declspec(dllexport) void ubasic_reset(void);
 __declspec(dllexport) void ubasic_run(void);
 __declspec(dllexport) int ubasic_finished(void);
+__declspec(dllexport) void ubasic_load_program(const char *program);
 
 // Callback
 
 typedef void (*Callback)(const char* value);
 __declspec(dllexport) void ubasic_callback(Callback cb);
-
 
 #endif /* __UBASIC_H__ */

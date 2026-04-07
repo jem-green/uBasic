@@ -91,7 +91,7 @@ namespace uBasicApp
 
             // Fit the picturebox to the form
 
-            consolePcitureBox.Select();
+            consolePictureBox.Select();
 
             // Fix the form size
 
@@ -116,6 +116,7 @@ namespace uBasicApp
                 string filenamePath = "";
                 filenamePath = path + Path.DirectorySeparatorChar + name + ".bas";
                 byte[] program;
+                byte[] memory;
 
                 Thread.Sleep(100);
                 try
@@ -127,14 +128,17 @@ namespace uBasicApp
                     }
 
                     _mruMenu.AddFile(filenamePath);
-                    _basic = new uBasic(program, _displayIO);
+                    memory = new byte[4096];
+                    _basic = new uBasic(memory, _displayIO);
+                    _basic.Init();
+                    _basic.Load(program);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));
                     _displayIO.Reset();
                     this._workerThread.Start();
-                    consolePcitureBox.Visible = true;
-                    consolePcitureBox.Enabled = true;
+                    consolePictureBox.Visible = true;
+                    consolePictureBox.Enabled = true;
                 }
                 catch (Exception e1)
                 {
@@ -152,8 +156,8 @@ namespace uBasicApp
             string path = "";
             string filename = "";
 
-            consolePcitureBox.Enabled = false;
-            consolePcitureBox.Visible = false;
+            consolePictureBox.Enabled = false;
+            consolePictureBox.Visible = false;
             if (_stopped == false)
             {
                 _basic.Stop();
@@ -185,6 +189,7 @@ namespace uBasicApp
 
                 filenamePath = path + Path.DirectorySeparatorChar + filename;
                 byte[] program;
+                byte[] memory;
 
                 Thread.Sleep(100);
                 try
@@ -195,14 +200,17 @@ namespace uBasicApp
                         program = System.Text.Encoding.ASCII.GetBytes(text);
                     }
 
-                    _basic = new uBasic(program, _displayIO);
+                    memory = new byte[4096];
+                    _basic = new uBasic(memory, _displayIO);
+                    _basic.Init();
+                    _basic.Load(program);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));
                     _displayIO.Reset();
                     this._workerThread.Start();
-                    consolePcitureBox.Visible = true;
-                    consolePcitureBox.Enabled = true;
+                    consolePictureBox.Visible = true;
+                    consolePictureBox.Enabled = true;
                 }
                 catch (Exception e1)
                 {
@@ -246,7 +254,7 @@ namespace uBasicApp
                         _mtd.Write((byte)c);
                     }
                 }
-                consolePcitureBox.Invalidate();
+                consolePictureBox.Invalidate();
             }
         }
 
@@ -261,13 +269,13 @@ namespace uBasicApp
 
         private void Run()
         {
-            _basic.Init(0);
             try
             {
                 do
                 {
                     _basic.Run();
                 } while (!_basic.IsFinished());
+                _stopped = true;
             }
             catch (Exception e)
             {
@@ -283,8 +291,8 @@ namespace uBasicApp
             string path = "";
             string filename = "";
 
-            consolePcitureBox.Enabled = false;
-            consolePcitureBox.Visible = false;
+            consolePictureBox.Enabled = false;
+            consolePictureBox.Visible = false;
             if (_stopped == false)
             {
                 _basic.Stop();
@@ -317,7 +325,7 @@ namespace uBasicApp
                 TraceInternal.TraceInformation("Use Name=" + filename);
                 TraceInternal.TraceInformation("Use Path=" + path);
 
-                //consoleTextBox.Text = "";
+                _mtd.Clear(); // Calls generate internally
                 Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
                 this.Text = "uBasic " + version + " - " + filename;
 
@@ -339,8 +347,8 @@ namespace uBasicApp
                     this._workerThread = new Thread(new ThreadStart(this.Run));
                     _displayIO.Reset();
                     this._workerThread.Start();
-                    consolePcitureBox.Visible = true;
-                    consolePcitureBox.Enabled = true;
+                    consolePictureBox.Visible = true;
+                    consolePictureBox.Enabled = true;
                 }
                 catch (Exception e1)
                 {
@@ -537,14 +545,14 @@ namespace uBasicApp
             Debug.WriteLine("Out SaveFiles");
         }
 
-        private void ConsolePcitureBox_Paint(object sender, PaintEventArgs e)
+        private void ConsolePictureBox_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             Bitmap b = _mtd.Bitmap;
             g.DrawImageUnscaled(b, 0, 0);
         }
 
-        private void ConsolePcitureBox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        private void ConsolePictureBox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
 
             byte key = _matrix.ToASCII(e.KeyValue, e.Shift, e.Control, e.Alt);
@@ -624,7 +632,7 @@ namespace uBasicApp
 
                     _lineBuffer += (char)key;           // Append to line buffer
                 }
-                consolePcitureBox.Invalidate();
+                consolePictureBox.Invalidate();
             }
         }
 
@@ -650,10 +658,35 @@ namespace uBasicApp
             this.MinimumSize = new Size(width, height); // 40
             this.MaximumSize = new Size(width, height);
 
-            this.consolePcitureBox.Invalidate();
+            this.consolePictureBox.Invalidate();
         }
 
         #endregion
 
+        private void ConsolePiciureBox_Click(object sender, EventArgs e)
+        {
+            this.consolePictureBox.Invalidate();
+        }
+
+        private void ActionStopMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_stopped == false)
+            {
+                _basic.Stop();
+            }
+        }
+
+        private void ActionStartMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_stopped == true)
+            {
+                _basic.Reset();
+                Run();
+                if (_workerThread != null && _workerThread.IsAlive)
+                {
+                    _workerThread.Join(1000);
+                }
+            }
+        }
     }
 }

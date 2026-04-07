@@ -7,7 +7,8 @@
             None = 0,
             Command = 1,
             Registry = 2,
-            App = 3
+            App = 3,
+            File = 4
         }
 
         public string Name { get; }

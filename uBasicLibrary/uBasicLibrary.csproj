@@ -12,4 +12,9 @@
       <HintPath>..\ThirdParty\tracer\net6.0\TracerLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <None Update="ubasic.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

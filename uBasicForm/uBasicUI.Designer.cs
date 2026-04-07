@@ -85,30 +85,30 @@ namespace uBasicForm
             // openFileMenuItem
             // 
             openFileMenuItem.Name = "openFileMenuItem";
-            openFileMenuItem.Size = new Size(359, 44);
+            openFileMenuItem.Size = new Size(263, 44);
             openFileMenuItem.Text = "&Open";
             openFileMenuItem.Click += FileOpenMenuItem_Click;
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(356, 6);
+            toolStripSeparator1.Size = new Size(260, 6);
             // 
             // recentFileToolStripMenuItem
             // 
             recentFileToolStripMenuItem.Name = "recentFileToolStripMenuItem";
-            recentFileToolStripMenuItem.Size = new Size(359, 44);
+            recentFileToolStripMenuItem.Size = new Size(263, 44);
             recentFileToolStripMenuItem.Text = "Recent File";
             // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(356, 6);
+            toolStripSeparator2.Size = new Size(260, 6);
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(359, 44);
+            exitToolStripMenuItem.Size = new Size(263, 44);
             exitToolStripMenuItem.Text = "&Exit";
             exitToolStripMenuItem.Click += FileExitMenuItem_Click;
             // 
@@ -122,14 +122,14 @@ namespace uBasicForm
             // fontToolStripMenuItem
             // 
             fontToolStripMenuItem.Name = "fontToolStripMenuItem";
-            fontToolStripMenuItem.Size = new Size(204, 44);
+            fontToolStripMenuItem.Size = new Size(359, 44);
             fontToolStripMenuItem.Text = "Font";
             fontToolStripMenuItem.Click += FormatFontMenuItem_Click;
             // 
             // colorToolStripMenuItem
             // 
             colorToolStripMenuItem.Name = "colorToolStripMenuItem";
-            colorToolStripMenuItem.Size = new Size(204, 44);
+            colorToolStripMenuItem.Size = new Size(359, 44);
             colorToolStripMenuItem.Text = "Color";
             colorToolStripMenuItem.Click += FormatColorMenuItem_Click;
             // 

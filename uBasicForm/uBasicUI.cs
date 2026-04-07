@@ -64,6 +64,7 @@ namespace uBasicForm
                 string filenamePath = "";
                 filenamePath = path + Path.DirectorySeparatorChar + name + ".bas";
                 byte[] program;
+                byte[] memory;
 
                 Thread.Sleep(100);
                 try
@@ -75,7 +76,10 @@ namespace uBasicForm
                     }
 
                     _mruMenu.AddFile(filenamePath);
-                    _basic = new uBasic(program, _textBoxIO);
+                    memory = new byte[4096];
+                    _basic = new uBasic(memory, _textBoxIO);
+                    _basic.Init();
+                    _basic.Load(program);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));
@@ -133,6 +137,7 @@ namespace uBasicForm
 
                 filenamePath = path + Path.DirectorySeparatorChar + filename;
                 byte[] program;
+                byte[] memory;
 
                 Thread.Sleep(100);
                 try
@@ -143,7 +148,12 @@ namespace uBasicForm
                         program = System.Text.Encoding.ASCII.GetBytes(text);
                     }
 
-                    _basic = new uBasic(program, _textBoxIO);
+                    // Define some memory
+
+                    memory = new byte[4096];
+                    _basic = new uBasic(memory, _textBoxIO);
+                    _basic.Init();
+                    _basic.Load(program);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));
@@ -190,7 +200,6 @@ namespace uBasicForm
 
         private void Run()
         {
-            _basic.Init(0);
             try
             {
                 do

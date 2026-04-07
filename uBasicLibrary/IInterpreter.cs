@@ -9,8 +9,10 @@ namespace uBasicLibrary
     public interface IInterpreter
     {
         void Abort(string text);
-        void Init(int pos);
+        void Init();
+        void Load(byte[] data);
         void Run();
+        void Reset();
         bool IsFinished();
         void Stop();
     }
