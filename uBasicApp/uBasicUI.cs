@@ -389,16 +389,15 @@ namespace uBasicApp
             Settings.Default.Upgrade();
 
             // Set window location
-            if (Settings.Default.ConsoleLocation != null)
-            {
-                // fIx errors with location being negative or off the main display
 
-                this.Location = Settings.Default.ConsoleLocation;
-                if ((this.Location.X < 0) || (this.Location.Y < 0))
-                {
-                    this.Location = new Point(0, 0);
-                }
+            // fIx errors with location being negative or off the main display
+
+            this.Location = Settings.Default.ConsoleLocation;
+            if ((this.Location.X < 0) || (this.Location.Y < 0))
+            {
+                this.Location = new Point(0, 0);
             }
+            
 
             this.WindowState = FormWindowState.Normal;
 
@@ -407,10 +406,8 @@ namespace uBasicApp
             this.Width = _displayIO.Width;
 
             // Set window size
-            if (Settings.Default.ConsoleSize != null)
-            {
-                this.Size = Settings.Default.ConsoleSize;
-            }
+
+            this.Size = Settings.Default.ConsoleSize;
 
             // Set Console font
             if (Settings.Default.ConsoleFont != null)
@@ -419,13 +416,13 @@ namespace uBasicApp
             }
 
             // Set Console font colour
-            if (Settings.Default.ConsoleFontColor != null)
+            if (Settings.Default.ConsoleFontColor != Color.Black)
             {
                 //this.consoleTextBox.ForeColor = Settings.Default.ConsoleFontColor;
             }
 
             // Set Console colour
-            if (Settings.Default.ConsoleColor != null)
+            if (Settings.Default.ConsoleColor != Color.White)
             {
                 //this.consoleTextBox.BackColor = Settings.Default.ConsoleColor;
             }

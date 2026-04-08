@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Windows.Forms;
 using TracerLibrary;
 using uBasicLibrary;
@@ -18,6 +19,7 @@ namespace uBasicForm
         /// </summary>
 
         [STAThread]
+        [SupportedOSPlatform("windows")]
         static void Main()
         {
             // Read in specific configuration

@@ -350,15 +350,13 @@ namespace uBasicForm
             Settings.Default.Upgrade();
 
             // Set window location
-            if (Settings.Default.ConsoleLocation != null)
-            {
-                // fIx errors with location being negative or off the main display
 
-                this.Location = Settings.Default.ConsoleLocation;
-                if ((this.Location.X < 0) || (this.Location.Y < 0))
-                {
-                    this.Location = new Point(0, 0);
-                }
+            // fix errors with location being negative or off the main display
+
+            this.Location = Settings.Default.ConsoleLocation;
+            if ((this.Location.X < 0) || (this.Location.Y < 0))
+            {
+                this.Location = new Point(0, 0);
             }
 
             this.WindowState = FormWindowState.Normal;
@@ -368,10 +366,9 @@ namespace uBasicForm
             this.Width = _textBoxIO.Width;
 
             // Set window size
-            if (Settings.Default.ConsoleSize != null)
-            {
-                this.Size = Settings.Default.ConsoleSize;
-            }
+
+            this.Size = Settings.Default.ConsoleSize;
+            
 
             // Set Console font
             if (Settings.Default.ConsoleFont != null)
@@ -380,16 +377,11 @@ namespace uBasicForm
             }
 
             // Set Console font colour
-            if (Settings.Default.ConsoleFontColor != null)
-            {
-                this.consoleTextBox.ForeColor = Settings.Default.ConsoleFontColor;
-            }
+            this.consoleTextBox.ForeColor = Settings.Default.ConsoleFontColor;
+            
 
             // Set Console colour
-            if (Settings.Default.ConsoleColor != null)
-            {
-                this.consoleTextBox.BackColor = Settings.Default.ConsoleColor;
-            }
+            this.consoleTextBox.BackColor = Settings.Default.ConsoleColor;
 
             Debug.WriteLine("Out ConsoleForm_Load()");
 

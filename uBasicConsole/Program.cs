@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using TracerLibrary;
 using System.ComponentModel.Design;
+using System.Runtime.Versioning;
 
 namespace uBasicConsole
 {
@@ -46,6 +47,7 @@ namespace uBasicConsole
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+        [SupportedOSPlatform("windows")]
         static void Main(string[] args)
         {
             Debug.WriteLine("Enter Main()");
