@@ -70,6 +70,7 @@ static int32_t *gosub_depth_cell = NULL;
 static int32_t *for_depth_cell = NULL;
 static int32_t *gosub_stack_mem = NULL;
 static for_state *for_stack = NULL;
+static VARIABLE_TYPE *variables_mem = NULL;
 
 struct line_index {
   int line_number;
@@ -78,9 +79,6 @@ struct line_index {
 };
 struct line_index *line_index_head = NULL;
 struct line_index *line_index_current = NULL;
-
-#define MAX_VARNUM 26
-static VARIABLE_TYPE variables[MAX_VARNUM];
 
 static int ended;
 
@@ -116,13 +114,10 @@ void ubasic_init(uint8_t *memory) {
   for_depth_cell = (int32_t *)(memory + UBASIC_MEM_FOR_DEPTH_OFFSET);
   gosub_stack_mem = (int32_t *)(memory + UBASIC_MEM_GOSUB_STACK_OFFSET);
   for_stack = (for_state *)(memory + UBASIC_MEM_FOR_STACK_OFFSET);
-  *gosub_depth_cell = 0;
-  *for_depth_cell = 0;
+  variables_mem = (VARIABLE_TYPE *)(memory + UBASIC_MEM_VARIABLES_OFFSET);
   program_ptr = (char const *)(memory + UBASIC_MEM_PROGRAM_OFFSET);
-  memory[UBASIC_MEM_PROGRAM_OFFSET] = '\0';
   index_free();
   tokenizer_init(program_ptr);
-  ended = 0;
   #if VERBOSE
     DEBUG_PRINTF("ubasic_init: Initializing uBasic.\n");
   #endif
@@ -146,13 +141,22 @@ void ubasic_reset(void) {
   if (for_depth_cell != NULL) {
     *for_depth_cell = 0;
   }
+  if (gosub_stack_mem != NULL) {
+    memset(gosub_stack_mem, 0, UBASIC_MAX_GOSUB_STACK_DEPTH * sizeof(int32_t));
+  }
+  if (for_stack != NULL) {
+    memset(for_stack, 0, UBASIC_MAX_FOR_STACK_DEPTH * sizeof(for_state));
+  }
+  if (variables_mem != NULL) {
+    memset(variables_mem, 0, UBASIC_VARIABLE_COUNT * sizeof(VARIABLE_TYPE));
+  }
   ended = 0;
-  emit("--- Resetting uBasic ---\n");
+
   #if VERBOSE
     DEBUG_PRINTF("ubasic_reset: Resetting uBasic.\n");
   #endif
 }
-
+/*---------------------------------------------------------------------------*/
 void ubasic_load_program(const char *program) {
   size_t len;
 
@@ -160,21 +164,15 @@ void ubasic_load_program(const char *program) {
     DEBUG_PRINTF("ubasic_load_program: call ubasic_init first.\n");
     return;
   }
-  index_free();
+  ubasic_reset();
   len = strlen(program);
   memcpy(mem_base + UBASIC_MEM_PROGRAM_OFFSET, program, len + 1);
   program_ptr = (char const *)(mem_base + UBASIC_MEM_PROGRAM_OFFSET);
   tokenizer_init(program_ptr);
-  *gosub_depth_cell = 0;
-  *for_depth_cell = 0;
-  ended = 0;
   #if VERBOSE
     DEBUG_PRINTF("ubasic_load_program: Loaded program of length %u.\n", (unsigned)len);
   #endif
 }
-
-
-
 /*---------------------------------------------------------------------------*/
 int ubasic_finished(void){
   return ended || tokenizer_finished();
@@ -189,9 +187,6 @@ void ubasic_run(void){
   }
   line_statement();
 }
-
-
-
 
 /*---------------------------------------------------------------------------*/
 void ubasic_callback(Callback cb) {
@@ -214,7 +209,7 @@ static void accept(int token){
 /*---------------------------------------------------------------------------*/
 static int varfactor(void){
   int r;
-  DEBUG_PRINTF("varfactor: obtaining %d from variable %d.\n", variables[tokenizer_variable_num()], tokenizer_variable_num());
+  DEBUG_PRINTF("varfactor: obtaining %d from variable %d.\n", get_variable(tokenizer_variable_num()), tokenizer_variable_num());
   r = get_variable(tokenizer_variable_num());
   accept(TOKENIZER_VARIABLE);
   return r;
@@ -458,7 +453,7 @@ static void print_statement(void) {
   do {
     if(tokenizer_token() == TOKENIZER_STRING) {
       tokenizer_string(string, sizeof(string));
-	    sprintf(buf+strlen(buf), "%s", string);
+	  sprintf(buf+strlen(buf), "%s", string);
       tokenizer_next();
     } else if(tokenizer_token() == TOKENIZER_COMMA) {
       sprintf(buf+strlen(buf), "%s", " ");
@@ -467,7 +462,7 @@ static void print_statement(void) {
       tokenizer_next();
     } else if(tokenizer_token() == TOKENIZER_VARIABLE ||
         tokenizer_token() == TOKENIZER_NUMBER) {
-		  sprintf(buf+strlen(buf), "%d", expr());
+		sprintf(buf+strlen(buf), "%d", expr());
     } else if (tokenizer_token() == TOKENIZER_CR){
       tokenizer_next();
     } else {
@@ -519,7 +514,7 @@ static void let_statement(void){
   accept(TOKENIZER_EQ);
   set_variable(var, expr());
   #if VERBOSE
-    DEBUG_PRINTF("let_statement: assign %d to %d.\n", variables[var], var);
+    DEBUG_PRINTF("let_statement: assign %d to %d.\n", get_variable(var), var);
   #endif
   accept(TOKENIZER_LF);
 
@@ -551,7 +546,7 @@ static void return_statement(void){
     DEBUG_PRINTF("return_statement: non-matching return.\n");
   }
 }
-
+/*---------------------------------------------------------------------------*/
 static void rem_statement(void) {
   accept(TOKENIZER_REM);
   DEBUG_PRINTF("rem_statement: Skipping comment.\n");
@@ -560,7 +555,6 @@ static void rem_statement(void) {
     accept(TOKENIZER_LF);
   }
 }
-
 /*---------------------------------------------------------------------------*/
 static void next_statement(void){
   int var;
@@ -569,7 +563,7 @@ static void next_statement(void){
   var = tokenizer_variable_num();
   accept(TOKENIZER_VARIABLE);
   if(*for_depth_cell > 0 &&
-     var == (int)(for_stack[*for_depth_cell - 1].for_variable - 'a')) {
+     var == (int)for_stack[*for_depth_cell - 1].for_variable_index) {
     for_state top = for_stack[*for_depth_cell - 1];
     set_variable(var, get_variable(var) + 1);
     if(get_variable(var) <= top.to) {
@@ -580,8 +574,8 @@ static void next_statement(void){
     }
   } else {
     if (*for_depth_cell > 0) {
-      DEBUG_PRINTF("next_statement: non-matching next (expected %c, found %c).\n",
-          for_stack[*for_depth_cell - 1].for_variable, (char)('a' + var));
+      DEBUG_PRINTF("next_statement: non-matching next (expected %d, found %d).\n",
+          (int)for_stack[*for_depth_cell - 1].for_variable_index, var);
     }
     accept(TOKENIZER_LF);
   }
@@ -600,16 +594,15 @@ static void for_statement(void) {
   to = expr();
   accept(TOKENIZER_LF);
 
-  {
-    for_state st;
-    st.line_after_for = (int32_t)tokenizer_num();
-    st.for_variable = (char)('a' + for_variable);
-    st.to = (int32_t)to;
-    for_push(st);
-    #if VERBOSE
-      DEBUG_PRINTF("for_statement: new for, var %c to %d.\n", st.for_variable, (int)st.to);
-    #endif
-  }
+  for_state st;
+  st.line_after_for = (int32_t)tokenizer_num();
+  st.for_variable_index = (int32_t)for_variable;
+  st.to = (int32_t)to;
+  for_push(st);
+  #if VERBOSE
+    DEBUG_PRINTF("for_statement: new for, var %d to %d.\n", (int)st.for_variable_index, (int)st.to);
+  #endif
+  
 }
 /*---------------------------------------------------------------------------*/
 static void peek_statement(void){
@@ -708,14 +701,14 @@ static void line_statement(void){
 }
 /*---------------------------------------------------------------------------*/
 static void set_variable(int varnum, VARIABLE_TYPE value){
-  if(varnum >= 0 && varnum <= MAX_VARNUM) {
-    variables[varnum] = value;
+  if(variables_mem != NULL && varnum >= 0 && varnum < UBASIC_VARIABLE_COUNT) {
+    variables_mem[varnum] = value;
   }
 }
 /*---------------------------------------------------------------------------*/
 static VARIABLE_TYPE get_variable(int varnum){
-  if(varnum >= 0 && varnum <= MAX_VARNUM) {
-    return variables[varnum];
+  if(variables_mem != NULL && varnum >= 0 && varnum < UBASIC_VARIABLE_COUNT) {
+    return variables_mem[varnum];
   }
   return 0;
 }
@@ -730,9 +723,7 @@ static int32_t gosub_pop(void) {
   *gosub_depth_cell = ptr;
   return gosub_stack_mem[ptr];
 }
-
 /*---------------------------------------------------------------------------*/
-
 static void gosub_push(int32_t line_num) {
   int32_t ptr = *gosub_depth_cell;
   if (ptr >= UBASIC_MAX_GOSUB_STACK_DEPTH) {
@@ -742,9 +733,7 @@ static void gosub_push(int32_t line_num) {
   gosub_stack_mem[ptr] = line_num;
   *gosub_depth_cell = ptr + 1;
 }
-
 /*---------------------------------------------------------------------------*/
-
 static void for_push(for_state state) {
   int32_t depth = *for_depth_cell;
   if (depth < UBASIC_MAX_FOR_STACK_DEPTH) {
@@ -754,7 +743,7 @@ static void for_push(for_state state) {
     DEBUG_PRINTF("for_push: for stack depth exceeded.\n");
   }
 }
-
+/*---------------------------------------------------------------------------*/
 static for_state for_pop(void) {
   for_state error_state = {-1, '\0', 0};
   int32_t depth = *for_depth_cell;
@@ -767,6 +756,7 @@ static for_state for_pop(void) {
     return error_state;
   }
 }
+/*---------------------------------------------------------------------------*/
 
 
 

@@ -44,14 +44,16 @@ typedef void (*poke_func)(VARIABLE_TYPE, VARIABLE_TYPE);
  *   int32_t for_depth at offset 4
  *   int32_t gosub_stack[UBASIC_MAX_GOSUB_STACK_DEPTH]
  *   struct for_state for_stack[UBASIC_MAX_FOR_STACK_DEPTH]
+ *   VARIABLE_TYPE variables[UBASIC_VARIABLE_COUNT]  (a-z, then A-Z)
  *   program bytes (NUL-terminated; capacity = buffer size - UBASIC_MEM_PROGRAM_OFFSET)
  */
 #define UBASIC_MAX_GOSUB_STACK_DEPTH 10
 #define UBASIC_MAX_FOR_STACK_DEPTH 4
+#define UBASIC_VARIABLE_COUNT 26
 
 typedef struct for_state {
   int32_t line_after_for;
-  char for_variable; /* ASCII 'a'..'z' (matches tokenizer single-letter vars) */
+  int32_t for_variable_index; /* 0..51 (a-z then A-Z) */
   int32_t to;
 } for_state;
 
@@ -60,8 +62,10 @@ typedef struct for_state {
 #define UBASIC_MEM_GOSUB_STACK_OFFSET 8
 #define UBASIC_MEM_FOR_STACK_OFFSET \
   (UBASIC_MEM_GOSUB_STACK_OFFSET + UBASIC_MAX_GOSUB_STACK_DEPTH * (int)sizeof(int32_t))
-#define UBASIC_MEM_PROGRAM_OFFSET \
+#define UBASIC_MEM_VARIABLES_OFFSET \
   (UBASIC_MEM_FOR_STACK_OFFSET + UBASIC_MAX_FOR_STACK_DEPTH * (int)sizeof(for_state))
+#define UBASIC_MEM_PROGRAM_OFFSET \
+  (UBASIC_MEM_VARIABLES_OFFSET + UBASIC_VARIABLE_COUNT * (int)sizeof(VARIABLE_TYPE))
 
 #define UBASIC_MIN_MEMORY_BYTES (UBASIC_MEM_PROGRAM_OFFSET + 1u)
 

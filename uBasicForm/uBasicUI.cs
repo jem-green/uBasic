@@ -292,6 +292,7 @@ namespace uBasicForm
 
                 filenamePath = path + Path.DirectorySeparatorChar + filename;
                 byte[] program;
+                byte[] memory;
 
                 Thread.Sleep(100);
                 try
@@ -302,7 +303,10 @@ namespace uBasicForm
                         program = System.Text.Encoding.ASCII.GetBytes(text);
                     }
                     _mruMenu.AddFile(filenamePath);
-                    _basic = new uBasic(program, _textBoxIO);
+                    memory = new byte[4096];
+                    _basic = new uBasic(memory,  _textBoxIO);
+                    _basic.Init();
+                    _basic.Load(program);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));

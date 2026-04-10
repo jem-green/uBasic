@@ -31,7 +31,6 @@
 #define DEBUG 0
 #define VERBOSE 0
 
-
 #if DEBUG
 #define DEBUG_PRINTF(...)  printf(__VA_ARGS__)
 #else
@@ -161,7 +160,8 @@ static int get_next_token(void) {
   #endif
   
   // eat all whitespace
-  while(*ptr == ' ' || *ptr == '\t' || *ptr == '\r') ptr++;
+  while(*ptr == ' ' || *ptr == '\t' || *ptr == '\r')
+    ptr++;
 
   if(*ptr == 0) {
     return TOKENIZER_ENDOFINPUT;
@@ -252,7 +252,7 @@ void tokenizer_next(void){
     DEBUG_PRINTF("tokenizer_next: %p %s.\n", ptr-startptr, tokenizer_token_name(current_token));
   #endif
 }
-
+/*---------------------------------------------------------------------------*/
 void tokeniser_skip(void) {
   while(!(*nextptr == '\n' || tokenizer_finished())) {
         ++nextptr;
@@ -262,7 +262,6 @@ void tokeniser_skip(void) {
   }
   ptr = nextptr;
 }
-
 /*---------------------------------------------------------------------------*/
 VARIABLE_TYPE tokenizer_num(void)
 {
@@ -306,17 +305,12 @@ char const *tokenizer_pos(void){
     return ptr;
 }
 
+/*---------------------------------------------------------------------------*/
 char const *tokenizer_start(void) {
 	return startptr;
 }
 
-//char* tokenizer_token_name(int token){
-//	struct keyword_token kt;
-//	kt = keywords[token];
-//	char* name = kt.keyword;
-//	return(name);
-//}
-
+/*---------------------------------------------------------------------------*/
 char *tokenizer_token_name(int token) {
     for (int i = 0; tokens[i].keyword != NULL; i++) {
         if (tokens[i].token == token) {
