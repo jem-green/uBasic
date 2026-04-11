@@ -91,7 +91,8 @@ static Callback stored_callback = 0;
 
 /*
  * Buffer passed to ubasic_init (see UBASIC_*_OFFSET in ubasic.h):
- *   gosub depth, for depth, gosub stack[], for stack[], then NUL-terminated program.
+ *   gosub depth, for depth, gosub stack[], for stack[],
+ *   then NUL-terminated program.
  */
 
 
@@ -187,7 +188,6 @@ void ubasic_run(void){
   }
   line_statement();
 }
-
 /*---------------------------------------------------------------------------*/
 void ubasic_callback(Callback cb) {
     stored_callback = cb;
@@ -198,8 +198,8 @@ void ubasic_callback(Callback cb) {
 static void accept(int token){
   if(token != tokenizer_token()) {
     DEBUG_PRINTF("accept: Token not what was expected (expected '%s', got %s).\n",
-		tokenizer_token_name(token),
-		tokenizer_token_name(tokenizer_token()));
+	tokenizer_token_name(token),
+	tokenizer_token_name(tokenizer_token()));
     tokenizer_error_print();
     exit(1);
   }
@@ -461,8 +461,8 @@ static void print_statement(void) {
     } else if(tokenizer_token() == TOKENIZER_SEMICOLON) {
       tokenizer_next();
     } else if(tokenizer_token() == TOKENIZER_VARIABLE ||
-        tokenizer_token() == TOKENIZER_NUMBER) {
-		sprintf(buf+strlen(buf), "%d", expr());
+      tokenizer_token() == TOKENIZER_NUMBER) {
+      sprintf(buf+strlen(buf), "%d", expr());
     } else if (tokenizer_token() == TOKENIZER_CR){
       tokenizer_next();
     } else {

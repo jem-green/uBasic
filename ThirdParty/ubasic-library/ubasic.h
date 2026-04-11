@@ -44,7 +44,7 @@ typedef void (*poke_func)(VARIABLE_TYPE, VARIABLE_TYPE);
  *   int32_t for_depth at offset 4
  *   int32_t gosub_stack[UBASIC_MAX_GOSUB_STACK_DEPTH]
  *   struct for_state for_stack[UBASIC_MAX_FOR_STACK_DEPTH]
- *   VARIABLE_TYPE variables[UBASIC_VARIABLE_COUNT]  (a-z, then A-Z)
+ *   VARIABLE_TYPE variables[UBASIC_VARIABLE_COUNT]  {a-z)
  *   program bytes (NUL-terminated; capacity = buffer size - UBASIC_MEM_PROGRAM_OFFSET)
  */
 #define UBASIC_MAX_GOSUB_STACK_DEPTH 10
