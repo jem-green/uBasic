@@ -550,7 +550,7 @@ static void return_statement(void){
 static void rem_statement(void) {
   accept(TOKENIZER_REM);
   DEBUG_PRINTF("rem_statement: Skipping comment.\n");
-  tokeniser_skip();
+  tokenizer_skip();
   if (tokenizer_token() == TOKENIZER_LF) {
     accept(TOKENIZER_LF);
   }

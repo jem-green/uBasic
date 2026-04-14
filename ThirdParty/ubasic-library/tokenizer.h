@@ -88,6 +88,6 @@ void tokenizer_error_print(void);
 char const *tokenizer_pos(void);
 char const *tokenizer_start(void);
 char *tokenizer_token_name(int token);
-void tokeniser_skip(void);
+void tokenizer_skip(void);
 
 #endif /* __TOKENIZER_H__ */

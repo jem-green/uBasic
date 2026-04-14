@@ -161,7 +161,8 @@ static int get_next_token(void) {
   #endif
   
   // eat all whitespace
-  while(*ptr == ' ' || *ptr == '\t' || *ptr == '\r') ptr++;
+  while(*ptr == ' ' || *ptr == '\t' || *ptr == '\r')
+    ptr++;
 
   if(*ptr == 0) {
     return TOKENIZER_ENDOFINPUT;
@@ -252,8 +253,8 @@ void tokenizer_next(void){
     DEBUG_PRINTF("tokenizer_next: %p %s.\n", ptr-startptr, tokenizer_token_name(current_token));
   #endif
 }
-
-void tokeniser_skip(void) {
+/*---------------------------------------------------------------------------*/
+void tokenizer_skip(void) {
   while(!(*nextptr == '\n' || tokenizer_finished())) {
         ++nextptr;
   }
@@ -261,6 +262,7 @@ void tokeniser_skip(void) {
     nextptr++;
   }
   ptr = nextptr;
+  current_token = get_next_token();
 }
 
 /*---------------------------------------------------------------------------*/
