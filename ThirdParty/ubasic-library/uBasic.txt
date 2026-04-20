@@ -1,0 +1,79 @@
+(* iBasic EBNF - grammar for the syntax accepted by Tokenizer/BasicInterpreter *)
+
+program        = { line } ;
+
+line           = LINE_NUMBER WS? statement LF ;
+LINE_NUMBER    = NUMBER ;
+
+statement      = printStmt
+               | ifStmt
+               | gotoStmt
+               | gosubStmt
+               | returnStmt
+               | forStmt
+               | nextStmt
+               | letStmt
+               | peekStmt
+               | pokeStmt
+               | endStmt
+               | remStmt
+               | callStmt  (* Tokenizer recognizes CALL but interpreter currently does not implement it *)
+               ;
+
+printStmt      = "PRINT" WS? printList ;
+printList      = printItem { ("," | ";") WS? printItem } [ CR ] ;
+printItem      = STRING | expression ;
+
+ifStmt         = "IF" WS? relation WS? "THEN" WS? statement [ WS? "ELSE" WS? statement ] ;
+
+gotoStmt       = "GOTO" WS? NUMBER ;
+
+gosubStmt      = "GOSUB" WS? NUMBER ;
+
+returnStmt     = "RETURN" ;
+
+forStmt        = "FOR" WS? VARIABLE WS? "=" WS? expression WS? "TO" WS? expression ;
+nextStmt       = "NEXT" WS? VARIABLE ;
+
+letStmt        = [ "LET" WS? ] VARIABLE WS? "=" WS? expression ;
+
+peekStmt       = "PEEK" WS? expression WS? "," WS? VARIABLE ;
+pokeStmt       = "POKE" WS? expression WS? "," WS? expression ;
+
+endStmt        = "END" ;
+remStmt        = "REM" WS? { CHAR_EXCEPT_LF } ;
+callStmt       = "CALL" WS? IDENT ;
+
+(* Expressions and relations *)
+relation       = expression [ ("<" | ">" | "=") WS? expression ] ;
+expression     = term { WS? ("+" | "-" | "&" | "|") WS? term } ;
+term           = factor { WS? ("*" | "/" | "%") WS? factor } ;
+factor         = NUMBER | VARIABLE | "(" WS? expression WS? ")" ;
+
+(* Lexical tokens (terminals) *)
+NUMBER         = DIGIT { DIGIT } ;
+STRING         = '"' { ANY_EXCEPT_QUOTE } '"' ;
+VARIABLE       = LETTER ;        (* single letter variable: a-z or A-Z *)
+IDENT          = LETTER { LETTER | DIGIT } ;
+
+WS             = (" " | "\t" | CR)* ;
+LF             = "\n" ;
+CR             = "\r" ;
+
+DIGIT          = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+LETTER         = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k"
+               | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v"
+               | "w" | "x" | "y" | "z"
+               | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K"
+               | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V"
+               | "W" | "X" | "Y" | "Z" ;
+
+ANY_EXCEPT_QUOTE = ? any character except '"' and '\n' ? ;
+CHAR_EXCEPT_LF  = ? any character except '\n' ? ;
+
+(* Notes:
+   - Numbers are limited in the tokenizer implementation (max length). This EBNF models the shape only.
+   - Variables are single letters; Tokenizer maps lowercase and uppercase to different indices.
+   - Strings are delimited by double quotes and are not allowed to contain newline in the tokenizer.
+   - The interpreter expects each statement to end with a line feed (LF).
+*)

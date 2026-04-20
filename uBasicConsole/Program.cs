@@ -356,8 +356,9 @@ namespace uBasicConsole
 
                         // 
 
-                        memory = new byte[4096];
-                        IInterpreter basic = new uBasic(memory, consoleIO);
+                        UInt32 size = 4096;
+                        memory = new byte[size];
+                        IInterpreter basic = new uBasic(memory, size, consoleIO);
                         basic.Init();
                         basic.Load(program);
 

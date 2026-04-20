@@ -128,8 +128,9 @@ namespace uBasicApp
                     }
 
                     _mruMenu.AddFile(filenamePath);
-                    memory = new byte[4096];
-                    _basic = new uBasic(memory, _displayIO);
+                    UInt32 size = 4096;
+                    memory = new byte[size];
+                    _basic = new uBasic(memory, size, _displayIO);
                     _basic.Init();
                     _basic.Load(program);
 
@@ -199,9 +200,9 @@ namespace uBasicApp
                         string text = sr.ReadToEnd();
                         program = System.Text.Encoding.ASCII.GetBytes(text);
                     }
-
-                    memory = new byte[4096];
-                    _basic = new uBasic(memory, _displayIO);
+                    UInt32 size = 4096;
+                    memory = new byte[size];
+                    _basic = new uBasic(memory, size, _displayIO);
                     _basic.Init();
                     _basic.Load(program);
 
@@ -330,18 +331,24 @@ namespace uBasicApp
                 this.Text = "uBasic " + version + " - " + filename;
 
                 filenamePath = path + Path.DirectorySeparatorChar + filename;
+                byte[] memory;
                 byte[] program;
 
                 Thread.Sleep(100);
                 try
                 {
+
                     using (StreamReader sr = new StreamReader(filenamePath))
                     {
                         string text = sr.ReadToEnd();
                         program = System.Text.Encoding.ASCII.GetBytes(text);
                     }
                     _mruMenu.AddFile(filenamePath);
-                    _basic = new uBasic(program, _displayIO);
+
+                    UInt32 size = 4096;
+                    memory = new byte[size];
+                    IInterpreter basic = new uBasic(memory, size, _displayIO);
+                    _basic = new uBasic(program, size, _displayIO);
 
                     _stopped = false;
                     this._workerThread = new Thread(new ThreadStart(this.Run));

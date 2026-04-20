@@ -15,7 +15,7 @@ namespace uBasicLibrary
 
         // NOTE: change signatures to accept pointers so we can pin the managed buffer
         [DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ubasic_init(byte[] memory);
+        public static extern void ubasic_init(byte[] memory, UInt32 size);
 
         [DllImport("ubasic.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ubasic_reset();
@@ -41,13 +41,15 @@ namespace uBasicLibrary
         bool _ended = false;
         byte[] _program;
         byte[] _memory = new byte[4096];
+        UInt32 _size = 0;
 
-        public uBasic(byte[] memory, IDefaultIO consoleIO)
+        public uBasic(byte[] memory, UInt32 size, IDefaultIO consoleIO)
         {
             _defaultIO = consoleIO;
 
             // Ensure we have a sufficiently large memory buffer. If caller passed null create default.
             _memory = memory;
+            _size = size;
             _ended = false;
 
             // Assign the delegate to the instance field
@@ -60,7 +62,7 @@ namespace uBasicLibrary
         {
             Debug.WriteLine("In uBasic.Init()");
             // Pass the pinned pointer to native init
-            ubasic_init(_memory);
+            ubasic_init(_memory, _size);
             _ended = false;
             Debug.WriteLine("Out uBasic.Init()");
         }

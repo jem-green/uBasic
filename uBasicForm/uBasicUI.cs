@@ -76,8 +76,9 @@ namespace uBasicForm
                     }
 
                     _mruMenu.AddFile(filenamePath);
-                    memory = new byte[4096];
-                    _basic = new uBasic(memory, _textBoxIO);
+                    UInt32 size = 4096;
+                    memory = new byte[size];
+                    _basic = new uBasic(memory, size, _textBoxIO);
                     _basic.Init();
                     _basic.Load(program);
 
@@ -150,8 +151,9 @@ namespace uBasicForm
 
                     // Define some memory
 
-                    memory = new byte[4096];
-                    _basic = new uBasic(memory, _textBoxIO);
+                    UInt32 size = 4096;
+                    memory = new byte[size];
+                    _basic = new uBasic(memory, size, _textBoxIO);
                     _basic.Init();
                     _basic.Load(program);
 
@@ -303,8 +305,9 @@ namespace uBasicForm
                         program = System.Text.Encoding.ASCII.GetBytes(text);
                     }
                     _mruMenu.AddFile(filenamePath);
-                    memory = new byte[4096];
-                    _basic = new uBasic(memory,  _textBoxIO);
+                    UInt32 size = 4096;
+                    memory = new byte[size];
+                    _basic = new uBasic(memory, size, _textBoxIO);
                     _basic.Init();
                     _basic.Load(program);
 
